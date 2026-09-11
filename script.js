@@ -1,6 +1,6 @@
 /**
  * ==========================================================
- * ZINDA — 34 KITAB
+ * ZINDA
  * Kitab mengorbit sosoknya. Ketuk kitab: satu lembar, isinya
  * tentang apa. Ketuk sosoknya: nama panjangnya. Selesai.
  * Data ada di data.js (BOOKS_DATA, PROFILE_DATA).
@@ -15,6 +15,8 @@ let activeCategory = "all";
 let focus = { x: 0, y: 0 };
 let seeded = false;
 let lastFocused = null;
+let sheetOpen = false;   // keadaan sebenarnya, bukan ditebak dari el.sheet.hidden
+let hideTimer = null;    // jadwal penyembunyian; harus bisa dibatalkan
 let hovered = null;   // kitab yang sedang disentuh: auranya sedikit menyala
 
 const el = {
@@ -315,6 +317,11 @@ function openName() {
 }
 
 function showSheet(trigger) {
+  /* Penutupan sebelumnya menyembunyikan lembar 220ms setelah diminta. Kalau
+     lembar dibuka lagi di dalam jendela itu, jadwal lama harus dibatalkan -
+     kalau tidak, dia menyembunyikan lembar yang baru saja dibuka. */
+  clearTimeout(hideTimer);
+  sheetOpen = true;
   lastFocused = trigger || document.activeElement;
   el.sheet.hidden = false;
   el.scrim.hidden = false;
@@ -325,15 +332,18 @@ function showSheet(trigger) {
 }
 
 function closeSheet() {
+  if (!sheetOpen) return;
+  sheetOpen = false;   // langsung, tidak menunggu animasinya selesai
   el.sheet.classList.remove("is-open");
   el.scrim.classList.remove("is-open");
-  setTimeout(() => { el.sheet.hidden = true; el.scrim.hidden = true; }, 220);
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => { el.sheet.hidden = true; el.scrim.hidden = true; }, 220);
   if (lastFocused && lastFocused.isConnected) lastFocused.focus();
 }
 
 /* lembar cuma punya satu tombol, jadi fokus dikunci di situ */
 function trapTab(e) {
-  if (e.key !== "Tab" || el.sheet.hidden) return;
+  if (e.key !== "Tab" || !sheetOpen) return;
   e.preventDefault();
   el.close.focus();
 }
@@ -370,14 +380,20 @@ function setupEvents() {
   el.scrim.addEventListener("click", closeSheet);
 
   window.addEventListener("keydown", e => {
-    if (e.key === "Escape" && !el.sheet.hidden) closeSheet();
+    if (e.key === "Escape" && sheetOpen) closeSheet();
     trapTab(e);
   });
 
   const img = document.getElementById("figureImg");
   const markLoaded = () => img.classList.add("is-loaded");
-  if (img.complete && img.naturalWidth > 0) markLoaded();
+  /* .figure-img mulai dari opacity:0 dan hanya .is-loaded yang menampilkannya.
+     Kalau gambarnya gagal dimuat, "load" tidak pernah berbunyi - tanpa cabang
+     "error" di bawah, pusat halaman jadi kosong selamanya. img.complete di
+     sini sengaja tidak lagi memeriksa naturalWidth: gambar yang sudah gagal
+     pun harus ditampilkan, supaya alt-nya terlihat, bukan lubang kosong. */
+  if (img.complete) markLoaded();
   img.addEventListener("load", markLoaded);
+  img.addEventListener("error", markLoaded);
 
   // ResizeObserver menangkap perubahan ukuran panggung, bukan cuma window
   let rt;

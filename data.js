@@ -1,5 +1,5 @@
 /* ==========================================================
-   DATA — 34 Kitab Turats & Profil
+   DATA — Kitab Turats & Profil
    Sumber teks: "copy writing buku/penjelasan buku buku.docx".
    Silsilah LIPIA (Nahwu & Sharaf, Ta'bir, Qira'ah) ditulis
    satu entri per silsilah, mengikuti dokumen itu.
