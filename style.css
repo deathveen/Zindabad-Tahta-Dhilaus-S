@@ -1,0 +1,316 @@
+/* ==========================================================
+   ZINDA — 34 KITAB
+   Satu layar, satu gerak. Tidak ada yang di layar kecuali
+   kitab, sosoknya, dan satu baris filter.
+   Palet brand: tinta, krem, tanah liat.
+   ========================================================== */
+
+:root {
+  --ink:   #171512;
+  --ink-2: #1e1b17;
+  --cream: #f2efe8;
+  --clay:  #b65a38;
+
+  --muted: rgba(242, 239, 232, 0.54);
+  --faint: rgba(242, 239, 232, 0.30);
+  --line:  rgba(242, 239, 232, 0.12);
+
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 44px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur:  200ms;
+
+  --dock-h: 64px;
+}
+
+/* ---------- RESET ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* .sheet punya display:flex, dan itu mengalahkan [hidden] bawaan browser.
+   Tanpa baris ini lembar yang tertutup tetap menadah klik di tengah layar. */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+body {
+  font-family: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+
+:focus-visible { outline: 1px solid var(--cream); outline-offset: 3px; }
+
+/* ==========================================================
+   PANGGUNG
+   ========================================================== */
+.stage {
+  position: fixed;
+  inset: 0 0 var(--dock-h) 0;
+  overflow: hidden;
+}
+
+/* satu-satunya latar: cahaya sangat tipis supaya sosoknya punya pijakan */
+.stage-well {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(46% 52% at 50% 50%,
+    rgba(242, 239, 232, 0.055) 0%,
+    rgba(242, 239, 232, 0.018) 40%,
+    transparent 70%);
+  pointer-events: none;
+}
+
+/* aura: benang cahaya tipis dari tiap kitab menuju sosoknya */
+.fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mark {
+  position: absolute;
+  top: clamp(18px, 3vw, 28px);
+  left: clamp(18px, 3vw, 28px);
+  z-index: 6;
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ==========================================================
+   SOSOK
+   ========================================================== */
+.figure {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  width: min(clamp(190px, 24vw, 300px), 38vh);
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  transition: transform var(--dur) var(--ease);
+}
+.figure:hover { transform: translate(-50%, calc(-50% - 3px)); }
+.figure:active { transform: translate(-50%, -50%) scale(0.99); }
+
+.figure-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.55));
+  opacity: 0;
+  transition: opacity 500ms var(--ease);
+}
+.figure-img.is-loaded { opacity: 1; }
+
+/* ==========================================================
+   PUNGGUNG KITAB
+   ========================================================== */
+.books { position: absolute; inset: 0; z-index: 3; }
+
+.spine {
+  position: absolute;
+  left: 0; top: 0;
+  width: 26px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(242, 239, 232, 0.05);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  will-change: transform, opacity;
+  transition: background var(--dur) var(--ease),
+              border-color var(--dur) var(--ease),
+              opacity 400ms var(--ease);
+}
+
+.spine-label {
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(242, 239, 232, 0.66);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 78px;
+  pointer-events: none;
+  transition: color var(--dur) var(--ease);
+}
+
+.spine:hover,
+.spine:focus-visible {
+  background: rgba(242, 239, 232, 0.11);
+  border-color: rgba(242, 239, 232, 0.38);
+}
+.spine:hover .spine-label { color: var(--cream); }
+
+.spine.is-dimmed { opacity: 0.1; pointer-events: none; }
+
+/* ==========================================================
+   FILTER
+   ========================================================== */
+.dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: calc(var(--dock-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 20;
+  background: var(--ink);
+  border-top: 1px solid var(--line);
+}
+
+.dock-scroll {
+  height: var(--dock-h);
+  display: flex;
+  align-items: center;
+  /* di tengah; "safe" supaya saat chip-nya lebih lebar dari layar,
+     yang paling kiri tidak terpotong dan tetap bisa di-scroll */
+  justify-content: center;
+  justify-content: safe center;
+  gap: var(--s-1);
+  padding: 0 clamp(10px, 2vw, 22px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.dock-scroll::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex: none;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.chip:hover { color: var(--cream); }
+
+.chip.is-active {
+  color: var(--cream);
+  background: var(--clay);
+}
+
+/* ==========================================================
+   LEMBAR
+   ========================================================== */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(10, 9, 7, 0.78);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.sheet-scrim.is-open { opacity: 1; }
+
+.sheet {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.99);
+  width: min(430px, calc(100vw - 36px));
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-2);
+  border: 1px solid rgba(242, 239, 232, 0.16);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.sheet.is-open { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+.sheet-close {
+  position: absolute;
+  top: var(--s-2); right: var(--s-2);
+  z-index: 2;
+  width: 40px; height: 40px;
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+  transition: color var(--dur) var(--ease);
+}
+.sheet-close:hover { color: var(--cream); }
+
+.sheet-body {
+  overflow-y: auto;
+  padding: var(--s-7) var(--s-6) var(--s-6);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.sheet-body::-webkit-scrollbar { width: 3px; }
+.sheet-body::-webkit-scrollbar-thumb { background: var(--line); }
+
+.sheet-title {
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--cream);
+}
+
+.sheet-desc {
+  margin-top: var(--s-4);
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* nama panjang — satu-satunya isi lembar profil */
+.sheet.is-name .sheet-body { padding: var(--s-7) var(--s-6); }
+.sheet-name {
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(24px, 5.4vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--cream);
+  text-align: center;
+}
+
+/* ==========================================================
+   LAYAR SEMPIT
+   ========================================================== */
+@media (max-width: 900px) {
+  .figure { width: min(clamp(148px, 38vw, 196px), 34vh); }
+  .spine { width: 22px; height: 76px; }
+  .spine-label { max-height: 60px; font-size: 8px; }
+  .sheet-body { padding: var(--s-6) var(--s-5) var(--s-5); }
+}
+
+/* ==========================================================
+   GERAK MINIM
+   ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .figure-img { opacity: 1; }
+}
