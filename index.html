@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Zinda — 34 Kitab</title>
+  <meta name="description" content="34 kitab yang sudah dipelajari Zinda. Ketuk punggung kitab untuk tahu isinya.">
+
+  <link rel="icon" type="image/svg+xml" href="assets/logo_zain.svg">
+  <link rel="apple-touch-icon" href="assets/logo_zain.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Schibsted+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="stage" id="stage">
+    <div class="stage-well" aria-hidden="true"></div>
+    <canvas id="fx" class="fx" aria-hidden="true"></canvas>
+
+    <p class="mark">Zinda</p>
+
+    <div class="books" id="books"></div>
+
+    <button class="figure" id="figure" aria-label="Lihat nama">
+      <img src="assets/IMG-20250125-WA0004.jpg_2K_202608232148-removebg-preview.png" alt="Zinda" class="figure-img" id="figureImg">
+    </button>
+  </main>
+
+  <nav class="dock" aria-label="Filter fan ilmu">
+    <div class="dock-scroll" id="dock">
+      <button class="chip" data-category="nahwu">Nahwu</button>
+      <button class="chip" data-category="sharaf">Sharaf</button>
+      <button class="chip" data-category="lughah">Lughah</button>
+      <button class="chip" data-category="aqidah">Tauhid</button>
+      <button class="chip" data-category="fiqih">Fiqih</button>
+      <button class="chip" data-category="ushul">Ushul</button>
+      <button class="chip" data-category="hadits">Hadits</button>
+      <button class="chip" data-category="quran">Qur'an</button>
+      <button class="chip" data-category="akhlaq">Adab</button>
+      <button class="chip" data-category="sirah">Sirah</button>
+    </div>
+  </nav>
+
+  <div class="sheet-scrim" id="scrim" hidden></div>
+
+  <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <button class="sheet-close" id="sheetClose" aria-label="Tutup">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="sheet-body" id="sheetBody"></div>
+  </aside>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
