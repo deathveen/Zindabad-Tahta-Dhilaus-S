@@ -24,16 +24,19 @@ Contoh lengkap yang sudah disetujui pemilik akun: `video/ep02/` ("3 Kunci, 1 Pin
 Kerjakan berurutan. Ada **dua titik persetujuan** (Tahap 3 dan 7): di titik itu berhenti dan
 tunggu jawaban pemilik akun, karena revisi setelah render penuh jauh lebih mahal.
 
-### Tahap 0: Percepat VO 1,2×
+### Tahap 0: Jernihkan dan percepat VO 1,2×
 
-Pemilik akun ingin tempo VO **1,2×** untuk semua episode. Lakukan ini paling awal, sebelum
-transkripsi, lalu pakai file hasilnya (bukan VO asli) di semua tahap berikutnya:
+Pemilik akun ingin suara Vonya **dijernihkan** dan tempo VO **1,2×** untuk semua episode.
+Lakukan ini paling awal, sebelum transkripsi, lalu pakai file hasilnya (bukan VO asli) di semua tahap berikutnya:
 
 ```bash
 .claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo.wav   # default 1.2
 ```
 
-`atempo` hanya mengubah kecepatan, nada suara Vonya tetap (SOP Bagian 4, Tahap 2). Simpan
+Penjernih: perbaiki bagian yang pecah (clipping), buang dengung rendah, kurangi desis, redam
+"s" tajam, perjelas suara, ratakan volume, dan heningkan jeda. `atempo` hanya mengubah
+kecepatan, nada suara Vonya tetap (SOP Bagian 4, Tahap 2). `--mentah` sebagai argumen keempat
+melewati penjernih. Simpan
 `vo.wav` di scratchpad, jangan di repo. Kalau pemilik akun minta kecepatan lain, isi argumen
 ketiga (misalnya `1.0` untuk tempo asli).
 
