@@ -26,7 +26,9 @@ render penuh.
 - **Parameter default `{}`** membuat penghitung kurung kurawal salah kira saat mengekstrak
   fungsi. Mulailah dari kurung tutup parameter (lihat cara pembuatan engine/lib.js).
 - **`riser`** harus mengarah ke hantaman berikutnya; durasi negatif membuat `audio.py` gagal.
-  Ini sudah ditangani: riser mencari `end_hit`/`door_open` berikutnya.
+  Di ep03 riser sempat berbunyi 43 detik (dari 0:48 sampai `end_hit` di 1:31) dan terdengar
+  "aneh" di tengah video. Sekarang riser hanya menuju `end_hit`/`door_open`/`unlock` yang
+  jaraknya ≤ 3 detik, selain itu 1,5 detik.
 - **Perintah dengan `pkill -f "render.js"`** ikut mematikan shell yang menjalankannya, karena
   baris perintahnya mengandung teks yang sama. Untuk menghentikan render, cari PID-nya dulu.
 - **Render penuh** dijalankan dengan `run_in_background`. Jangan menunggu dengan loop `sleep`.
@@ -53,3 +55,7 @@ render penuh.
   `scripts/declip.py` (dipanggil `prep_vo.sh`) mendeteksi gugus clipping dan menggantinya
   dengan versi low-pass yang diredam memakai transisi halus. Cek daftar "diperbaiki" yang
   dicetaknya, lalu dengarkan bagian itu.
+- **VO kalah oleh musik/SFX (ep03).** VO yang sudah dijernihkan lebih pelan, sehingga musik
+  3–6 dB lebih keras dari VO. `audio.py` kini menyetel VO ke -18 dBFS saat bicara, musik ±14 dB
+  dan SFX ±8 dB di bawahnya. Cek dengan `STEMS=folder python3 audio.py ...` (menyimpan trek
+  VO, musik, SFX terpisah). Hindari `impact` di luar adegan benda pecah: ada bunyi denting kaca.

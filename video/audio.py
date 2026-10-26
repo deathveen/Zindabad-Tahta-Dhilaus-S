@@ -10,6 +10,7 @@ saat VO berbicara. Tanpa VO: musik diberi efek "teredam" dan ducking sesuai pena
 di render.html. SFX disintesis sendiri tanpa sampel eksternal.
 """
 import json
+import os
 import subprocess
 import sys
 import wave
@@ -73,12 +74,16 @@ vo = None
 if vo_path:
     # VO dirapikan ringan: buang dengung rendah, kurangi desis, redam "s" tajam, ratakan volume
     # (dilewati bila VO sudah dijernihkan prep_vo.sh: VO_SIAP=1, diatur finalize.sh)
-    import os
     vo = load(vo_path, None if os.environ.get('VO_SIAP') else 'highpass=f=80,afftdn=nf=-28,deesser=i=0.4,acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
+    # VO disetel ke level tetap (RMS saat bicara -18 dBFS), apa pun level rekamannya
+    fr = int(.05 * SR); nf = N // fr
+    rms = np.sqrt((vo[:nf * fr].mean(axis=1).reshape(nf, fr) ** 2).mean(axis=1))
+    speak = rms[rms > np.percentile(rms, 90) * .25]
+    vo *= 10 ** (-18 / 20) / (np.sqrt((speak ** 2).mean()) + 1e-9)
     env = np.abs(vo).mean(axis=1)
     k = int(.25 * SR); env = np.convolve(env, np.ones(k) / k, 'same')
     env = np.clip(env / (np.percentile(env, 95) + 1e-9), 0, 1)
-    music *= (1 - .7 * env)[:, None]          # ducking: musik mengecil saat ada suara
+    music *= (1 - .75 * env)[:, None]         # ducking: musik mengecil saat ada suara
     music[T > M.get('vo_end', DUR)] *= 1.6    # musik naik di kartu penutup
 if 'impact' in M:
   # kurva "teredam": masuk saat kritik, paling dalam di malam hari, terbuka lagi saat fajar
@@ -160,11 +165,12 @@ def pan_r():
     return rng.uniform(-.6, .6)
 
 
-HITS = sorted(e['t'] for e in meta['events'] if e['type'] in ('end_hit', 'door_open'))
+HITS = sorted(e['t'] for e in meta['events'] if e['type'] in ('end_hit', 'door_open', 'unlock'))
 for e in meta['events']:
     t0, k = e['t'], e['type']
     if k == 'riser':  # riser naik sampai hantaman berikutnya
-        e['dur'] = next((h - t0 for h in HITS if h > t0 + .2), 1.5)
+        # ke hantaman berikutnya bila dekat; jangan pernah lebih dari 3 detik
+        e['dur'] = next((h - t0 for h in HITS if t0 + .2 < h <= t0 + 3), 1.5)
     if k == 'star':
         i = e['i']
         g = .2 if i < 10 else .2 * max(.25, 1 - (i - 10) / 70)
@@ -269,7 +275,11 @@ for c in range(2):
     wet[:, c] = np.fft.irfft(np.fft.rfft(sfx[:, c], nfft) * np.fft.rfft(ir, nfft), nfft)[:N]
 sfx = sfx * .85 + wet * .35
 
-mix = music * (.55 if vo is not None else .8) + sfx * (.8 if vo is not None else 1)
+if os.environ.get('STEMS'):  # simpan trek terpisah untuk diagnosa: STEMS=folder
+    for nm, a in (('music', music), ('sfx', sfx), ('vo', vo)):
+        if a is not None: np.save(f"{os.environ['STEMS']}/{nm}.npy", a.astype(np.float32))
+# dengan VO: musik ±14 dB dan SFX ±8 dB di bawah suara Vonya
+mix = music * (.25 if vo is not None else .8) + sfx * (.35 if vo is not None else 1)
 if vo is not None:
     mix += vo * 1.0
 fade = np.ones(N)
