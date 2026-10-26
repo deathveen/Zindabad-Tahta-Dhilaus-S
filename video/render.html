@@ -1,0 +1,670 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// "Seratus Bintang, Satu Batu" — animasi vertikal 9:16 tentang bias negativitas.
+// Koordinat logis 720x1280, dirender 1.5x ke 1080x1920. draw(t) deterministik per detik.
+const W = 720, H = 1280, SS = 1.5, STORY_END = 80;
+const cv = document.getElementById('c'); let ctx = cv.getContext('2d');
+
+// ---------- sinkron musik ----------
+// Cerita ditulis dalam "waktu cerita" t (0–80). Video mengikuti lagu (0–85.8 detik, waktu T);
+// jangkar di bawah memetakan momen penting cerita ke ketukan lagu.
+const DURATION = 85.8;
+const BEATS = [0.116, 0.697, 1.231, 1.788, 2.276, 2.833, 3.39, 3.971, 4.551, 5.178, 5.805, 6.432, 7.059, 7.616, 8.197, 8.754, 9.288, 9.776, 10.356, 10.867, 11.378, 11.981, 12.562, 13.189, 13.839, 14.42, 15.0, 15.557, 16.115, 16.718, 17.229, 17.74, 18.228, 18.785, 19.342, 19.853, 20.434, 20.991, 21.525, 22.175, 22.756, 23.29, 23.847, 24.311, 24.799, 25.403, 26.006, 26.587, 27.167, 27.864, 28.514, 29.164, 29.745, 30.302, 30.813, 31.463, 32.113, 32.694, 33.321, 33.924, 34.528, 35.062, 35.596, 36.223, 36.827, 37.338, 37.825, 38.359, 38.893, 39.497, 40.101, 40.681, 41.378, 41.958, 42.562, 43.189, 43.7, 44.234, 44.838, 45.465, 46.045, 46.672, 47.392, 47.949, 48.483, 49.017, 49.621, 50.202, 50.759, 51.339, 51.92, 52.477, 52.988, 53.568, 54.102, 54.683, 55.287, 55.914, 56.517, 57.051, 57.585, 58.12, 58.654, 59.211, 59.791, 60.279, 60.813, 61.37, 61.974, 62.555, 63.112, 63.716, 64.296, 64.877, 65.503, 66.13, 66.711, 67.361, 68.011, 68.592, 69.195, 69.822, 70.356, 70.96, 71.61, 72.214, 72.771, 73.282, 73.793, 74.304, 74.884, 75.465, 75.999, 76.533, 77.113, 77.764, 78.437, 79.064, 79.737, 80.341, 81.014, 81.688, 82.315, 82.872, 83.429, 84.01, 84.59];
+const ANCHORS = [[0, 0], [5, 7.62], [20.2, 23.85], [25, 30.3], [37, 44.23], [62.2, 66.13], [74, 77.76], [80, 85.8]];
+function pw(x, from, to) {
+  for (let i = 1; i < ANCHORS.length; i++) {
+    const [a0, a1] = [ANCHORS[i - 1][from], ANCHORS[i][from]];
+    if (x <= a1 || i === ANCHORS.length - 1) return ANCHORS[i - 1][to] + (x - a0) * (ANCHORS[i][to] - ANCHORS[i - 1][to]) / (a1 - a0);
+  }
+}
+const toStory = T => pw(T, 1, 0), toVideo = t => pw(t, 0, 1);
+function lastBeat(T) { let lo = -1; for (let i = 0; i < BEATS.length && BEATS[i] <= T; i++) lo = i; return lo; }
+function beatPulse(T) { const i = lastBeat(T); return i < 0 ? 0 : Math.exp(-(T - BEATS[i]) / .18); }
+function beatPhase(T) { const i = lastBeat(T); if (i < 0 || i >= BEATS.length - 1) return 0; return (T - BEATS[i]) / (BEATS[i + 1] - BEATS[i]); }
+let NT = 0; // waktu video untuk frame yang sedang digambar
+
+const AMBER = '#FFC24B', CREAM = '#FFF4E0', STONE = '#6B6F78';
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = k => 1 - Math.pow(1 - k, 3);
+const easeInOut = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const easeIn = k => k * k * k;
+const backOut = k => { const c = 1.7; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+function hex(c) { const n = parseInt(c.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function mix(c1, c2, k) { const a = hex(c1), b = hex(c2); return `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], k))).join(',')})`; }
+function mixRgb(c1, c2, k) { const a = hex(c1), b = hex(c2); return '#' + a.map((v, i) => Math.round(lerp(v, b[i], k)).toString(16).padStart(2, '0')).join(''); }
+
+// ---------- data cerita ----------
+const JAR = { x: 285, y: 868, w: 160, h: 200 };
+const N_STARS = 99;
+const STAR_T0 = 7.0, STAR_T1 = 18.2, FALL = 0.75;
+const STAR_LAND = (() => {
+  const k0 = BEATS.findIndex(b => b >= toVideo(STAR_T0 + FALL) - .05), out = [];
+  for (let i = 0; i < 10; i++) out.push(toStory(BEATS[k0 + i]));
+  const L9 = out[9], end = STAR_T1 + FALL;
+  for (let i = 10; i < N_STARS; i++) out.push(L9 + (end - L9) * Math.pow((i - 9) / (N_STARS - 10), .7));
+  return out;
+})();
+const starDropTime = i => STAR_LAND[i] - FALL;
+const STONE_DROP = 19.6, STONE_LAND = STONE_DROP + 0.6;
+const stars = (() => {
+  const r = rng(7), out = [], cols = 10, cw = (JAR.w - 26) / cols;
+  for (let i = 0; i < N_STARS; i++) {
+    const row = Math.floor(i / cols), col = i % cols;
+    out.push({
+      rx: JAR.x - JAR.w / 2 + 13 + cw * (col + .5) + (r() - .5) * 6 + (row % 2 ? cw / 2 - 3 : 0) * (col < cols - 1 ? 1 : 0),
+      ry: JAR.y - 16 - row * 12.5 - r() * 3,
+      sx: JAR.x + (r() - .5) * 260, rot: r() * 6.28, spin: (r() - .5) * 4,
+      hue: r(), leave: 25.6 + i * 0.075 + r() * .3, drift: r() * 6.28, dx: (r() - .5) * 340,
+      back: 69.8 + r() * 3.2, bx: 120 + r() * 480, by: 640 + r() * 260,
+    });
+  }
+  return out;
+})();
+const skyStars = (() => { const r = rng(42), o = []; for (let i = 0; i < 140; i++) o.push({ x: r() * W, y: r() * 780, s: .6 + r() * 1.6, p: r() * 6.28 }); return o; })();
+
+const CAPTIONS = [
+  [5.2, 8.6, 'Ini *Lumi*.'],
+  [8.6, 12.4, 'Hari ini ia mengumpulkan *pujian*.'],
+  [12.4, 15.6, 'Satu, dua, sepuluh...'],
+  [15.6, 19.2, '...sampai *sembilan puluh sembilan*.'],
+  [19.6, 22.2, 'Lalu datang *satu* kritik.'],
+  [22.2, 25.0, '"Kok *biasa aja*?"'],
+  [25.4, 29.2, 'Malamnya, pujian-pujian itu *terbang*.'],
+  [29.2, 33.0, 'Ringan. Indah. Lalu *hilang*.'],
+  [33.0, 36.8, 'Tapi batu itu *tetap tinggal*.'],
+  [37.3, 40.6, 'Dalam psikologi, ini disebut *bias negativitas*.'],
+  [40.6, 44.0, 'Otak memberi *bobot lebih* pada hal yang buruk.'],
+  [44.3, 48.0, 'Tinjauan atas *ratusan* studi menemukan pola yang sama:'],
+  [48.0, 52.0, 'yang buruk diproses lebih *dalam* dan diingat lebih *lama*.'],
+  [52.3, 57.0, 'Dulu, yang peka pada bahaya lebih mungkin *selamat*.'],
+  [57.3, 62.0, 'Butuh sekitar *lima* hal baik untuk mengimbangi *satu* yang buruk.'],
+  [62.4, 65.6, 'Tapi kritik tidak selalu salah.'],
+  [65.6, 69.6, 'Ambil *pelajarannya*...'],
+  [69.6, 73.8, '...lalu *letakkan batunya*.'],
+  [75.0, 79.6, 'Batu apa yang masih kamu bawa hari ini?'],
+];
+
+// ---------- primitif gambar ----------
+function starPath(x, y, r, rot) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = rot + i * Math.PI / 5 - Math.PI / 2, rr = i % 2 ? r * .48 : r;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath();
+}
+function drawStar(x, y, r, rot, alpha = 1, glow = 1, color = AMBER) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (glow > 0) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3.2);
+    g.addColorStop(0, `rgba(255,200,90,${.45 * glow})`); g.addColorStop(1, 'rgba(255,200,90,0)');
+    ctx.fillStyle = g; ctx.fillRect(x - r * 3.2, y - r * 3.2, r * 6.4, r * 6.4);
+  }
+  starPath(x, y, r, rot); ctx.fillStyle = color; ctx.fill();
+  starPath(x - r * .12, y - r * .15, r * .45, rot); ctx.fillStyle = 'rgba(255,255,230,.55)'; ctx.fill();
+  ctx.restore();
+}
+const STONE_SHAPE = [[-1, .15], [-.8, -.55], [-.25, -.85], [.45, -.75], [.95, -.25], [1, .35], [.6, .8], [-.3, .85], [-.85, .6]];
+function drawStone(x, y, s, rot = 0, opts = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  if (opts.aura) {
+    const g = ctx.createRadialGradient(0, 0, s * .5, 0, 0, s * 2.6);
+    g.addColorStop(0, `rgba(20,10,40,${.55 * opts.aura})`); g.addColorStop(1, 'rgba(20,10,40,0)');
+    ctx.fillStyle = g; ctx.fillRect(-s * 3, -s * 3, s * 6, s * 6);
+  }
+  ctx.beginPath();
+  STONE_SHAPE.forEach(([px, py], i) => {
+    const [nx, ny] = STONE_SHAPE[(i + 1) % STONE_SHAPE.length];
+    const mx = (px + nx) / 2 * s, my = (py + ny) / 2 * s;
+    if (i === 0) ctx.moveTo((px + STONE_SHAPE[STONE_SHAPE.length - 1][0]) / 2 * s, (py + STONE_SHAPE[STONE_SHAPE.length - 1][1]) / 2 * s);
+    ctx.quadraticCurveTo(px * s, py * s, mx, my);
+  });
+  ctx.closePath();
+  const g = ctx.createLinearGradient(-s, -s, s, s);
+  g.addColorStop(0, opts.light || '#8A8F99'); g.addColorStop(1, opts.dark || '#3E424B');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.stroke();
+  // retakan
+  ctx.beginPath(); ctx.moveTo(-s * .15, -s * .7); ctx.lineTo(s * .05, -s * .25); ctx.lineTo(-s * .1, s * .05); ctx.lineTo(s * .15, s * .4);
+  ctx.strokeStyle = 'rgba(20,20,28,.55)'; ctx.lineWidth = 2.2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-s * .45, -s * .35, s * .22, s * .1, -.6, 0, 6.28); ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fill();
+  ctx.restore();
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+
+// Lumi: karakter bulat berwarna krem. mood: 1 senang, 0 datar, -1 sedih
+function drawLumi(x, y, s, o = {}) {
+  const t = o.t || 0, mood = o.mood ?? 1, squash = o.squash ?? 0, look = o.look ?? 0, lookY = o.lookY ?? 0;
+  const bob = Math.sin(t * 2.4) * 2 * (o.bob ?? 1);
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  // bayangan
+  ctx.beginPath(); ctx.ellipse(0, 2, 52, 9, 0, 0, 6.28); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fill();
+  const bw = 52 * (1 + squash * .12), bh = 50 * (1 - squash * .14), cy = -bh - 6 + bob * .5;
+  // kaki
+  ctx.fillStyle = mixRgb(CREAM, '#C9A98A', .35);
+  [-20, 20].forEach(fx => { ctx.beginPath(); ctx.ellipse(fx, -4, 13, 7, 0, 0, 6.28); ctx.fill(); });
+  // tangan
+  const armUp = o.armUp ?? 0;
+  ctx.strokeStyle = mixRgb(CREAM, '#C9A98A', .35); ctx.lineWidth = 9; ctx.lineCap = 'round';
+  [-1, 1].forEach(side => {
+    const up = side === 1 ? armUp : (o.armUpL ?? 0);
+    ctx.beginPath(); ctx.moveTo(side * bw * .86, cy + 8);
+    ctx.quadraticCurveTo(side * (bw + 14), cy + 20 - up * 40, side * (bw + 10 - up * 8), cy + 34 - up * 70);
+    ctx.stroke();
+  });
+  // badan
+  const g = ctx.createRadialGradient(-bw * .35, cy - bh * .4, 5, 0, cy, bw * 1.3);
+  g.addColorStop(0, '#FFFDF6'); g.addColorStop(1, mixRgb(CREAM, '#E8C9A4', .55));
+  ctx.beginPath(); ctx.ellipse(0, cy, bw, bh, 0, 0, 6.28); ctx.fillStyle = g; ctx.fill();
+  if (o.tint) { ctx.globalAlpha = o.tint; ctx.fillStyle = '#5a6b8f'; ctx.fill(); ctx.globalAlpha = 1; }
+  // daun kecil di kepala (muncul di akhir)
+  if (o.leaf) {
+    ctx.save(); ctx.translate(6, cy - bh + 2); ctx.rotate(-.25 + Math.sin(t * 3) * .08); ctx.scale(o.leaf, o.leaf);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -14); ctx.strokeStyle = '#5E9E5A'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -12); ctx.quadraticCurveTo(18, -30, 30, -16); ctx.quadraticCurveTo(14, -6, 0, -12); ctx.fillStyle = '#7BC46F'; ctx.fill();
+    ctx.restore();
+  }
+  // wajah
+  const ex = 15, ey = cy - 6 + lookY;
+  const blink = o.blink ?? ((t % 3.7) < .12 ? .1 : 1);
+  const lid = o.lid ?? 0; // kelopak sayu
+  ctx.fillStyle = '#2A2233';
+  [-1, 1].forEach(side => {
+    ctx.beginPath(); ctx.ellipse(side * ex + look * 6, ey, 6, 9 * blink * (1 - lid * .45), 0, 0, 6.28); ctx.fill();
+  });
+  ctx.fillStyle = '#fff';
+  [-1, 1].forEach(side => { if (blink > .5) { ctx.beginPath(); ctx.arc(side * ex + look * 6 + 2, ey - 3, 2, 0, 6.28); ctx.fill(); } });
+  // pipi
+  ctx.fillStyle = 'rgba(255,130,130,.35)';
+  [-1, 1].forEach(side => { ctx.beginPath(); ctx.ellipse(side * 30 + look * 4, ey + 12, 8, 5, 0, 0, 6.28); ctx.fill(); });
+  // mulut
+  ctx.beginPath(); const my = ey + 16;
+  ctx.moveTo(-8 + look * 5, my - mood * 1); ctx.quadraticCurveTo(look * 5, my + mood * 8, 8 + look * 5, my - mood * 1);
+  ctx.strokeStyle = '#2A2233'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.restore();
+}
+
+function drawJar(t, opts = {}) {
+  const { x, y, w, h } = JAR, shake = opts.shake || 0;
+  ctx.save(); ctx.translate(x + Math.sin(t * 60) * shake * 5, y); ctx.rotate(Math.sin(t * 47) * shake * .03);
+  // bayangan
+  ctx.beginPath(); ctx.ellipse(0, 3, w * .55, 10, 0, 0, 6.28); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fill();
+  ctx.restore();
+  ctx.save(); ctx.translate(Math.sin(t * 60) * shake * 5, 0);
+  if (opts.inside) opts.inside();
+  ctx.restore();
+  ctx.save(); ctx.translate(x + Math.sin(t * 60) * shake * 5, y);
+  // kaca
+  roundRect(-w / 2, -h, w, h, 26);
+  ctx.fillStyle = 'rgba(200,230,255,.10)'; ctx.fill();
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(230,245,255,.55)'; ctx.stroke();
+  // leher & tutup
+  roundRect(-w * .36, -h - 22, w * .72, 26, 8); ctx.fillStyle = 'rgba(200,230,255,.12)'; ctx.fill(); ctx.stroke();
+  roundRect(-w * .4, -h - 34, w * .8, 16, 6); ctx.fillStyle = '#B98552'; ctx.fill();
+  // kilau
+  ctx.beginPath(); ctx.moveTo(-w / 2 + 16, -h + 30); ctx.lineTo(-w / 2 + 16, -40);
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.restore();
+}
+
+function hills(layers, t, par = 0) {
+  layers.forEach((L, li) => {
+    ctx.beginPath(); ctx.moveTo(-20, H);
+    for (let x = -20; x <= W + 20; x += 10) {
+      const xx = x + par * (li + 1) * 8;
+      ctx.lineTo(x, L.y + Math.sin(xx * L.f + L.p) * L.a + Math.sin(xx * L.f * 2.7 + L.p * 2) * L.a * .35);
+    }
+    ctx.lineTo(W + 20, H); ctx.closePath(); ctx.fillStyle = L.c; ctx.fill();
+  });
+}
+function sky(stops) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  stops.forEach(([o, c]) => g.addColorStop(o, c));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function sun(x, y, r, c, a = 1) {
+  ctx.save(); ctx.globalAlpha = a;
+  const g = ctx.createRadialGradient(x, y, r * .3, x, y, r * 4);
+  g.addColorStop(0, c); g.addColorStop(.25, c.replace(/[\d.]+\)$/, '.25)')); g.addColorStop(1, 'rgba(255,200,150,0)');
+  ctx.fillStyle = g; ctx.fillRect(x - r * 4, y - r * 4, r * 8, r * 8);
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.28); ctx.fillStyle = c; ctx.fill();
+  ctx.restore();
+}
+function twinkle(t, a) {
+  if (a <= 0) return;
+  skyStars.forEach(s => {
+    ctx.globalAlpha = a * (.45 + .55 * Math.sin(t * 2 + s.p) ** 2);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.s, 0, 6.28); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+function grass(t, y, color, n = 60, seed = 3) {
+  const r = rng(seed); ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const x = r() * W, h = 10 + r() * 18, sw = Math.sin(t * 1.6 + x * .02) * 4;
+    ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.quadraticCurveTo(x + sw * .5, y - h * .5, x + sw, y - h); ctx.stroke();
+  }
+}
+function particles(t, color, n = 30, seed = 9, rise = 1) {
+  const r = rng(seed);
+  for (let i = 0; i < n; i++) {
+    const x0 = r() * W, sp = 8 + r() * 18, ph = r() * 100;
+    const y = (H - ((t * sp * rise + ph * 13) % (H + 40))), x = x0 + Math.sin(t * .7 + ph) * 18;
+    ctx.globalAlpha = .25 + .35 * Math.sin(t + ph) ** 2;
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 1.2 + r() * 1.8, 0, 6.28); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ---------- teks ----------
+function setFont(px, weight = 800) { ctx.font = `${weight} ${px}px Inter, sans-serif`; }
+function wrapTokens(text, maxW) {
+  // *kata* = disorot; satu kata bisa berisi beberapa potongan (mis. "*Lumi*.")
+  let on = false; const sp = ctx.measureText(' ').width;
+  const words = text.split(' ').map(raw => {
+    const runs = [{ txt: '', hl: on }];
+    for (const ch of raw) { if (ch === '*') { on = !on; runs.push({ txt: '', hl: on }); } else runs[runs.length - 1].txt += ch; }
+    const rs = runs.filter(r => r.txt); rs.forEach(r => r.w = ctx.measureText(r.txt).width);
+    return { runs: rs, w: rs.reduce((a, r) => a + r.w, 0) };
+  });
+  const lines = [[]]; let lw = 0;
+  words.forEach(w => { if (lw + w.w > maxW && lines[lines.length - 1].length) { lines.push([]); lw = 0; } lines[lines.length - 1].push(w); lw += w.w + sp; });
+  return { lines, sp };
+}
+function caption(t) {
+  const c = CAPTIONS.find(([a, b]) => t >= a && t < b); if (!c) return;
+  const [a, b, text] = c, kin = easeOut(prog(t, a, a + .35)), kout = prog(t, b - .25, b);
+  const alpha = kin * (1 - kout);
+  setFont(34, 800);
+  const { lines, sp } = wrapTokens(text, 590), lh = 46, y0 = 1010 - (lines.length - 1) * lh / 2 + (1 - kin) * 14;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.textBaseline = 'middle';
+  // tiap kata muncul bertahap
+  let wi = 0; const total = lines.flat().length, reveal = prog(t, a, a + Math.min(1.0, (b - a) * .38)) * (1 + 1 / total);
+  lines.forEach((ln, li) => {
+    const tw = ln.reduce((s, w) => s + w.w, 0) + sp * (ln.length - 1); let x = W / 2 - tw / 2;
+    ln.forEach(w => {
+      const wk = clamp(reveal * total - wi); wi++;
+      const hl = w.runs.some(r => r.hl), sc = lerp(.55, 1, backOut(wk)) * (hl ? 1 + .08 * Math.sin(Math.PI * clamp((t - a - .9) / .35)) : 1);
+      ctx.save(); ctx.translate(x + w.w / 2, y0 + li * lh + (1 - easeOut(wk)) * 16 - kout * 10); ctx.scale(sc, sc);
+      ctx.globalAlpha = alpha * easeOut(wk);
+      ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 2;
+      let rx = -w.w / 2; w.runs.forEach(r => { ctx.fillStyle = r.hl ? AMBER : '#FFFFFF'; ctx.fillText(r.txt, rx, 0); rx += r.w; });
+      ctx.restore();
+      x += w.w + sp;
+    });
+  });
+  ctx.restore();
+}
+function headline(small, big, t, a, b, opts = {}) {
+  const kin = easeOut(prog(t, a, a + .6)), kout = b ? prog(t, b - .4, b) : 0, alpha = kin * (1 - kout);
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  const y = (opts.y || 150) + (1 - kin) * 18;
+  setFont(16, 700); ctx.fillStyle = opts.smallColor || 'rgba(255,244,224,.85)';
+  ctx.letterSpacing = `${lerp(14, 4, kin).toFixed(1)}px`; ctx.fillText(small, W / 2, y); ctx.letterSpacing = '0px';
+  setFont(opts.size || 50, 900); ctx.fillStyle = opts.bigColor || AMBER;
+  ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 18;
+  const lines = Array.isArray(big) ? big : [big], sz = opts.size || 50;
+  lines.forEach((l, i) => {
+    const li = backOut(prog(t, a + .12 + i * .13, a + .72 + i * .13));
+    ctx.save(); ctx.globalAlpha = alpha * clamp(li * 1.4); ctx.translate(W / 2, y + 58 + i * sz * 1.08 + (1 - li) * 40); ctx.scale(lerp(.85, 1, li), lerp(.85, 1, li));
+    ctx.fillText(l, 0, 0); ctx.restore();
+  });
+  ctx.restore();
+}
+function footnote(text, t, a, b, y = 1188) {
+  const al = easeOut(prog(t, a, a + .6)) * (1 - prog(t, b - .3, b)); if (al <= 0) return;
+  ctx.save(); ctx.globalAlpha = al * .6; setFont(14, 500); ctx.fillStyle = CREAM; ctx.textAlign = 'center';
+  (Array.isArray(text) ? text : [text]).forEach((l, i) => ctx.fillText(l, W / 2, y + i * 20)); ctx.restore();
+}
+
+// ---------- adegan ----------
+function sceneDusk(t, drain = 0) {
+  // senja hangat; drain = warna memudar setelah kritik
+  const top = mixRgb('#5B3F8C', '#3a3d4d', drain), mid = mixRgb('#E98A72', '#7d7a80', drain), low = mixRgb('#FFD39A', '#a9a39a', drain);
+  sky([[0, top], [.55, mid], [.75, low]]);
+  sun(620, 440 + drain * 40, 40, `rgba(255,${Math.round(lerp(224, 200, drain))},${Math.round(lerp(170, 190, drain))},${1 - drain * .5})`);
+  particles(t, 'rgba(255,240,200,1)', 24, 5);
+  hills([
+    { y: 700, a: 26, f: .006, p: 1, c: mixRgb('#9C5C83', '#5f5c66', drain) },
+    { y: 770, a: 20, f: .009, p: 3, c: mixRgb('#5E3E6E', '#45434d', drain) },
+    { y: 858, a: 8, f: .012, p: 5, c: mixRgb('#2E2440', '#24232b', drain) },
+  ], t, t * .3);
+  grass(t, 862, mixRgb('#3E2F55', '#2c2b33', drain));
+}
+
+function jarContents(t, mode) {
+  // mode: 'fill' | 'night' | 'refill'
+  stars.forEach((s, i) => {
+    let x, y, a = 1, rot = s.rot;
+    if (mode === 'fill') {
+      const td = starDropTime(i), k = prog(t, td, td + FALL);
+      if (t < td) return;
+      const e = easeIn(k) * .85 + k * .15;
+      x = lerp(s.sx, s.rx, easeOut(k)); y = lerp(-30, s.ry, e); rot += s.spin * (1 - k);
+      if (k < 1) [.06, .12, .18].forEach((d, j) => {
+        const kk = Math.max(0, k - d), ee = easeIn(kk) * .85 + kk * .15;
+        drawStar(lerp(s.sx, s.rx, easeOut(kk)), lerp(-30, s.ry, ee), 6.5 - j, rot, .35 - j * .1, 0);
+      });
+      const since = t - td - FALL;
+      if (since > 0 && since < .35) {
+        const q = since / .35; ctx.save(); ctx.globalAlpha = (1 - q) * .8; ctx.strokeStyle = '#FFE6A8'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(s.rx, s.ry, 6 + q * 18, 0, 6.28); ctx.stroke(); ctx.restore();
+      }
+      if (k >= 1 && t > STONE_LAND) { y += Math.sin((t - STONE_LAND) * 30) * Math.exp(-(t - STONE_LAND) * 6) * 3; }
+    } else if (mode === 'night') {
+      const k = prog(t, s.leave, s.leave + 6);
+      if (k >= 1) return;
+      const e = easeInOut(k);
+      x = s.rx + Math.sin(k * 6 + s.drift) * 30 * k + s.dx * e; y = lerp(s.ry, -40, e); rot += k * s.spin;
+      a = 1 - prog(k, .65, 1);
+      drawStar(x, y, 6.5 + k * 2, rot, a, .6 + k * .8); return;
+    } else if (mode === 'refill') {
+      const k = prog(t, s.back, s.back + 1.4); if (k <= 0) return;
+      x = lerp(s.bx, s.bx + Math.sin(s.drift) * 20, k); y = lerp(-30, s.by, easeOut(k));
+      a = easeOut(k); drawStar(x, y, 6, rot + t * .3, a * (.75 + .25 * Math.sin(t * 3 + i)), 1); return;
+    }
+    drawStar(x, y, 6.5, rot, a, .45);
+  });
+}
+
+function stoneInJar(t, mode) {
+  if (mode === 'fill') {
+    if (t < STONE_DROP) return;
+    const k = prog(t, STONE_DROP, STONE_LAND), yLand = JAR.y - 16 - 10 * 12.5 - 16;
+    const bounce = t > STONE_LAND ? Math.abs(Math.sin((t - STONE_LAND) * 9)) * Math.exp(-(t - STONE_LAND) * 5) * -10 : 0;
+    if (k < 1) [.08, .16].forEach((d, j) => { const kk = Math.max(0, k - d); ctx.save(); ctx.globalAlpha = .25 - j * .1; drawStone(JAR.x + 6, lerp(-60, yLand, easeIn(kk)), 26, .2 + kk * .4); ctx.restore(); });
+    drawStone(JAR.x + 6, lerp(-60, yLand, easeIn(k)) + bounce, 26, .2 + k * .4, { aura: prog(t, STONE_LAND, STONE_LAND + 2) });
+    const dk = prog(t, STONE_LAND, STONE_LAND + 1.1);
+    if (dk > 0 && dk < 1) {
+      const r = rng(77);
+      for (let i = 0; i < 18; i++) {
+        const ang = -Math.PI * (.1 + .8 * r()), sp = 90 + r() * 160, tt = dk * 1.1;
+        const px = JAR.x + 6 + Math.cos(ang) * sp * tt, py = yLand + Math.sin(ang) * sp * tt + 260 * tt * tt;
+        ctx.globalAlpha = (1 - dk) * .7; ctx.fillStyle = i % 3 ? '#9A9AA3' : '#D9CBB5';
+        ctx.beginPath(); ctx.arc(px, py, 2 + r() * 3, 0, 6.28); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  } else if (mode === 'night') {
+    // batu ikut turun saat bintang di bawahnya pergi
+    const k = easeInOut(prog(t, 26, 33.5)), y0 = JAR.y - 16 - 10 * 12.5 - 16, y1 = JAR.y - 30;
+    drawStone(JAR.x + 6, lerp(y0, y1, k), 26, .6, { aura: 1 + .3 * Math.sin(t * 2) });
+  }
+}
+
+function S_fill(t) {
+  const drain = easeInOut(prog(t, STONE_LAND + .2, 24.5)) * .85;
+  const zoom = 1 + easeInOut(prog(t, 5, 19)) * .06 + easeOut(prog(t, STONE_LAND, STONE_LAND + .3)) * .025 * (1 - prog(t, STONE_LAND + .3, STONE_LAND + 1.2));
+  ctx.save(); ctx.translate(W / 2, 820); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -820);
+  sceneDusk(t, drain);
+  const shake = t > STONE_LAND ? Math.exp(-(t - STONE_LAND) * 7) : 0;
+  drawJar(t, { shake, inside: () => { jarContents(t, 'fill'); stoneInJar(t, 'fill'); } });
+  // Lumi melonjak setiap bintang mendarat sebelum kritik datang
+  const landed = stars.filter((_, i) => t >= starDropTime(i) + FALL).length;
+  const hopOn = t < STONE_DROP ? prog(t, 7.5, 9) * (1 - prog(t, 19, 19.5)) : 0, ph = beatPhase(NT);
+  const hop = Math.sin(Math.PI * ph) * 9 * hopOn, land = (ph < .18 ? (1 - ph / .18) * .22 : -Math.sin(Math.PI * ph) * .1) * hopOn;
+  const shock = prog(t, STONE_LAND, STONE_LAND + .15);
+  const mood = t < STONE_LAND ? 1 : lerp(1, -.9, easeOut(prog(t, STONE_LAND, STONE_LAND + 1.5)));
+  drawLumi(500, 862 - hop, 1, { t, mood, look: -.9, lookY: t > STONE_LAND ? 2 : -2, squash: land - shock * .5 * Math.exp(-(t - STONE_LAND) * 4) + (t > 22 ? .25 * prog(t, 22, 24) : 0), armUp: t < STONE_DROP ? .6 * prog(t, 7.5, 8.5) : lerp(.6, 0, prog(t, STONE_LAND, STONE_LAND + .4)), armUpL: t < STONE_DROP ? .6 * prog(t, 7.5, 8.5) : lerp(.6, 0, prog(t, STONE_LAND, STONE_LAND + .4)), tint: drain * .25 });
+  ctx.restore();
+  // penghitung
+  if (t > 6.8) {
+    const a = prog(t, 6.8, 7.3) * (1 - prog(t, 24.3, 25));
+    ctx.save(); ctx.globalAlpha = a; ctx.textAlign = 'center';
+    const pop = t - starDropTime(Math.max(0, landed - 1)) - FALL < .15 && landed > 0 ? 1.08 : 1;
+    ctx.translate(JAR.x, 580); ctx.scale(pop, pop);
+    setFont(15, 700); ctx.fillStyle = 'rgba(255,244,224,.8)'; ctx.letterSpacing = '3px'; ctx.fillText('PUJIAN', 0, -34); ctx.letterSpacing = '0px';
+    setFont(64, 900); ctx.fillStyle = AMBER; ctx.shadowColor = 'rgba(255,190,80,.6)'; ctx.shadowBlur = 20; ctx.fillText(String(landed), 0, 26);
+    ctx.restore();
+    if (t > STONE_LAND) {
+      const k = easeOut(prog(t, STONE_LAND + .1, STONE_LAND + .6));
+      ctx.save(); ctx.globalAlpha = k * (1 - prog(t, 24.3, 25)); ctx.textAlign = 'center';
+      setFont(15, 700); ctx.fillStyle = 'rgba(255,244,224,.8)'; ctx.letterSpacing = '3px'; ctx.fillText('KRITIK', 520, 546); ctx.letterSpacing = '0px';
+      setFont(64, 900); ctx.fillStyle = '#C9CCD3'; ctx.fillText('1', 520, 606 - (1 - k) * 20); ctx.restore();
+    }
+  }
+}
+
+function S_night(t) {
+  const k = easeInOut(prog(t, 24.6, 26.5));
+  sky([[0, mixRgb('#3a3d4d', '#0B1030', k)], [.6, mixRgb('#7d7a80', '#1E2452', k)], [.8, mixRgb('#a9a39a', '#33305A', k)]]);
+  twinkle(t, k);
+  // bulan
+  ctx.save(); ctx.globalAlpha = k; ctx.beginPath(); ctx.arc(150, 230, 34, 0, 6.28); ctx.fillStyle = '#F4EBD0'; ctx.fill();
+  ctx.beginPath(); ctx.arc(166, 220, 30, 0, 6.28); ctx.fillStyle = mixRgb('#3a3d4d', '#0B1030', k); ctx.fill(); ctx.restore();
+  const zoom = 1 + easeInOut(prog(t, 32.5, 37)) * .14;
+  ctx.save(); ctx.translate(JAR.x + 60, 760); ctx.scale(zoom, zoom); ctx.translate(-(JAR.x + 60), -760);
+  hills([
+    { y: 720, a: 26, f: .006, p: 1, c: '#1F2350' },
+    { y: 790, a: 20, f: .009, p: 3, c: '#171A3C' },
+    { y: 858, a: 8, f: .012, p: 5, c: '#0E1028' },
+  ], t, 0);
+  grass(t, 862, '#161838');
+  drawJar(t, { inside: () => { stoneInJar(t, 'night'); jarContents(t, 'night'); } });
+  const sad = easeInOut(prog(t, 28, 34));
+  drawLumi(500, 862, 1, { t, mood: lerp(-.5, -1.2, sad), look: lerp(0, -.8, prog(t, 25, 27)), lookY: lerp(-6, 4, sad), squash: .25 + sad * .2, lid: .4 + sad * .5, tint: .35, bob: .4 });
+  ctx.restore();
+}
+
+function cardBg(t) {
+  sky([[0, '#1A1230'], [1, '#2D1E4F']]);
+  const g = ctx.createRadialGradient(W / 2, 560, 50, W / 2, 560, 560);
+  g.addColorStop(0, 'rgba(255,194,75,.10)'); g.addColorStop(1, 'rgba(255,194,75,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  particles(t, 'rgba(255,230,190,1)', 18, 21, .5);
+}
+function scale(t, tilt, leftStars, rightStone, cx = W / 2, cy = 560) {
+  ctx.save(); ctx.strokeStyle = CREAM; ctx.fillStyle = CREAM; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  // tiang
+  ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 230); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 70, cy + 232); ctx.lineTo(cx + 70, cy + 232); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy - 14, 9, 0, 6.28); ctx.fill();
+  const L = 210, ang = tilt;
+  const lx = cx - Math.cos(ang) * L, ly = cy - Math.sin(ang) * L, rx = cx + Math.cos(ang) * L, ry = cy + Math.sin(ang) * L;
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry); ctx.stroke();
+  [[lx, ly], [rx, ry]].forEach(([px, py], si) => {
+    const panY = py + 110;
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px - 70, panY); ctx.moveTo(px, py); ctx.lineTo(px + 70, panY); ctx.stroke();
+    ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(px - 84, panY); ctx.quadraticCurveTo(px, panY + 34, px + 84, panY); ctx.stroke();
+    if (si === 0) leftStars(px, panY); else rightStone(px, panY);
+  });
+  ctx.restore();
+}
+function pileStars(n, px, panY, t, seed = 4) {
+  const r = rng(seed);
+  for (let i = 0; i < n; i++) {
+    const row = Math.floor(i / 6), col = i % 6, off = row % 2 ? 9 : 0;
+    drawStar(px - 50 + col * 19 + off + (r() - .5) * 3, panY + 6 - row * 15, 9, r() * 6, 1, .5);
+  }
+}
+
+function S_cards(t) {
+  cardBg(t);
+  // Kartu 1: bias negativitas (37–44)
+  if (t < 44.3) {
+    const a = 1 - prog(t, 43.8, 44.3);
+    ctx.save(); ctx.globalAlpha = a;
+    headline('DALAM PSIKOLOGI', 'NEGATIVITY BIAS', t, 37.2, 0, { y: 230 });
+    const tilt = lerp(0, .32, backOut(prog(t, 39.6, 40.6)));
+    const dropK = easeIn(prog(t, 39.0, 39.6));
+    scale(t, tilt, (px, py) => pileStars(18, px, py, t), (px, py) => { if (t > 39) drawStone(px, lerp(py - 300, py - 6, dropK), 30, .5, { aura: .6 }); });
+    footnote('Rozin & Royzman (2001), Personality and Social Psychology Review', t, 37.6, 44.3);
+    ctx.restore();
+  } else if (t < 52.3) {
+    // Kartu 2: Baumeister dkk. 2001 (44–52)
+    const a = 1 - prog(t, 51.8, 52.3);
+    ctx.save(); ctx.globalAlpha = a;
+    headline('BAUMEISTER DKK. · 2001', ['BAD IS STRONGER', 'THAN GOOD'], t, 44.4, 0, { y: 210, size: 48 });
+    const rows = [['Diproses', .48, .92], ['Diingat', .42, .88], ['Terasa', .5, .95]];
+    rows.forEach(([label, good, bad], i) => {
+      const y = 470 + i * 120, k = easeOut(prog(t, 45.2 + i * .35, 46.6 + i * .35)), hk = prog(t, 48, 48.6);
+      ctx.save(); ctx.globalAlpha = a * prog(t, 45 + i * .35, 45.5 + i * .35);
+      setFont(26, 800); ctx.fillStyle = CREAM; ctx.textAlign = 'left'; ctx.fillText(label, 90, y);
+      const bx = 90, bw = 470;
+      roundRect(bx + 40, y + 16, bw * good * k, 18, 9); ctx.fillStyle = AMBER; ctx.fill();
+      roundRect(bx + 40, y + 44, bw * bad * k, 18, 9); ctx.fillStyle = mix('#9AA0AB', '#C9CCD3', hk); ctx.fill();
+      drawStar(bx + 14, y + 25, 9, 0, 1, .4); drawStone(bx + 14, y + 53, 10, .4);
+      ctx.restore();
+    });
+    ctx.save(); ctx.globalAlpha = a * prog(t, 46.5, 47.2) * .55; setFont(13, 500); ctx.fillStyle = CREAM; ctx.textAlign = 'right'; ctx.fillText('*ilustrasi, bukan angka dari studi', 630, 822); ctx.restore();
+    footnote(['Baumeister, Bratslavsky, Finkenauer & Vohs (2001)', 'Review of General Psychology, 5(4), 323–370'], t, 44.8, 52.3, 1176);
+    ctx.restore();
+  } else if (t < 57.3) {
+    // Kartu 3: alasan evolusi (52–57)
+    const a = 1 - prog(t, 56.8, 57.3);
+    ctx.save(); ctx.globalAlpha = a;
+    headline('KENAPA BEGITU?', ['WARISAN', 'BERTAHAN HIDUP'], t, 52.4, 0, { y: 210, size: 48 });
+    // semak dengan sepasang mata
+    const cx = W / 2, cy = 640, r = rng(11);
+    for (let i = 0; i < 9; i++) { ctx.beginPath(); ctx.arc(cx - 160 + i * 40, cy + Math.sin(i * 1.7) * 16, 70 + r() * 20, 0, 6.28); ctx.fillStyle = i % 2 ? '#22314A' : '#1B2840'; ctx.fill(); }
+    const eyesOn = prog(t, 53.2, 53.5), blink = (t % 2.2) < .1 ? .1 : 1;
+    [-28, 28].forEach(dx => { ctx.save(); ctx.globalAlpha = a * eyesOn; ctx.beginPath(); ctx.ellipse(cx + dx, cy - 10, 14, 9 * blink, 0, 0, 6.28); ctx.fillStyle = '#FFD25E'; ctx.shadowColor = '#FFC24B'; ctx.shadowBlur = 24; ctx.fill(); ctx.beginPath(); ctx.ellipse(cx + dx, cy - 10, 3.5, 8 * blink, 0, 0, 6.28); ctx.fillStyle = '#111'; ctx.shadowBlur = 0; ctx.fill(); ctx.restore(); });
+    // tanda seru
+    const ex = easeOut(prog(t, 53.6, 54.1));
+    ctx.save(); ctx.globalAlpha = a * ex; ctx.translate(cx + 150, cy - 140); ctx.scale(ex, ex); setFont(80, 900); ctx.fillStyle = AMBER; ctx.textAlign = 'center'; ctx.fillText('!', 0, 0); ctx.restore();
+    ctx.restore();
+  } else {
+    // Kartu 4: rasio 5:1 (57–62)
+    const a = 1 - prog(t, 61.6, 62.2);
+    ctx.save(); ctx.globalAlpha = a;
+    headline('ATURAN PRAKTIS', '± 5 : 1', t, 57.4, 0, { y: 230, size: 72 });
+    const n = Math.min(5, Math.floor(prog(t, 58, 60) * 6));
+    const tilt = lerp(.32, 0, easeInOut(n / 5));
+    scale(t, tilt, (px, py) => { for (let i = 0; i < n; i++) drawStar(px - 52 + i * 26, py + 2 - (i % 2) * 8, 11, i, 1, .7); }, (px, py) => drawStone(px, py - 6, 30, .5, { aura: .6 }), W / 2, 600);
+    footnote('Gottman (1994): rasio interaksi positif–negatif pada pasangan yang awet', t, 57.8, 62.2);
+    ctx.restore();
+  }
+}
+
+function S_dawn(t) {
+  const k = easeInOut(prog(t, 62, 66));
+  sky([[0, mixRgb('#2B2A5C', '#6C8FD0', k)], [.5, mixRgb('#7A5F9A', '#F7B7A3', k)], [.72, mixRgb('#E7A07C', '#FFE6B5', k)]]);
+  sun(380, lerp(820, 640, easeOut(prog(t, 62, 70))), 52, 'rgba(255,236,190,1)', .9);
+  particles(t, 'rgba(255,255,240,1)', 30, 17);
+  hills([
+    { y: 712, a: 26, f: .006, p: 2, c: mixRgb('#7B6D9E', '#9DB2C9', k) },
+    { y: 782, a: 20, f: .009, p: 4, c: mixRgb('#4E4A78', '#6F8A8F', k) },
+    { y: 858, a: 8, f: .012, p: 6, c: mixRgb('#2A2847', '#3C5848', k) },
+  ], t, t * .3);
+  grass(t, 862, mixRgb('#2f2c50', '#4E7656', k), 70, 8);
+
+  // Lumi membawa batu, lalu meletakkannya
+  const walk = easeInOut(prog(t, 69.8, 71.4));
+  const lx = lerp(330, 470, walk), hop = walk > 0 && walk < 1 ? Math.abs(Math.sin(walk * Math.PI * 4)) * 10 : 0;
+  const stoneDown = easeInOut(prog(t, 69.6, 70.4));
+  const sx = lerp(330 + 4, 230, stoneDown), sy = lerp(862 - 140, 862 - 22, stoneDown);
+  // tunas dari retakan batu → menjadi daun di kepala Lumi
+  const sprout = easeOut(prog(t, 65.8, 67.2)), fly = easeInOut(prog(t, 67.6, 69.0));
+  const lessonGlow = .5 + .5 * Math.sin(t * 4);
+  drawStone(sx, sy, 30, .15 * (1 - stoneDown), { aura: (1 - stoneDown) * .5 });
+  if (sprout > 0 && fly < 1) {
+    const bx = lerp(sx + 4, lx + 6, fly), by = lerp(sy - 26, 862 - 112, fly) - Math.sin(fly * Math.PI) * 60;
+    ctx.save(); ctx.translate(bx, by); ctx.scale(sprout, sprout);
+    const g = ctx.createRadialGradient(0, -8, 0, 0, -8, 40); g.addColorStop(0, `rgba(190,255,170,${.35 + .2 * lessonGlow})`); g.addColorStop(1, 'rgba(190,255,170,0)');
+    ctx.fillStyle = g; ctx.fillRect(-40, -48, 80, 80);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -14); ctx.strokeStyle = '#5E9E5A'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -12); ctx.quadraticCurveTo(18, -30, 30, -16); ctx.quadraticCurveTo(14, -6, 0, -12); ctx.fillStyle = '#7BC46F'; ctx.fill();
+    ctx.restore();
+  }
+  const armsUp = 1 - stoneDown;
+  drawLumi(lx, 862 - hop, 1, {
+    t, mood: lerp(-.6, 1, easeInOut(prog(t, 66, 70.8))), look: lerp(-.4, -.6, walk) + (t > 71.4 ? .4 * prog(t, 71.4, 72) : 0), lookY: -4,
+    armUp: armsUp, armUpL: armsUp, squash: (1 - stoneDown) * .1, leaf: fly >= 1 ? 1 : 0, tint: (1 - k) * .3,
+  });
+  // bintang kembali
+  ctx.save(); ctx.translate(0, 0); jarContents(t, 'refill'); ctx.restore();
+}
+
+function S_end(t) {
+  S_dawn(t);
+  const k = easeInOut(prog(t, 74, 75.2));
+  ctx.fillStyle = `rgba(16,12,36,${.62 * k})`; ctx.fillRect(0, 0, W, H);
+  headline('HARI INI, COBA', ['LETAKKAN', 'SATU BATU.'], t, 74.4, 0, { y: 360, size: 64 });
+  footnote(['Sumber: Baumeister dkk. (2001), Review of General Psychology;', 'Rozin & Royzman (2001), PSPR; Gottman (1994).'], t, 75.2, 99, 1170);
+}
+
+function S_hook(t) {
+  sceneDusk(t, 0);
+  drawJar(t, {});
+  drawLumi(500, 862, 1, { t, mood: .6, look: -.6, lookY: -4 });
+  ctx.fillStyle = `rgba(16,12,36,${.5 * (1 - easeInOut(prog(t, 4, 5.4)))})`; ctx.fillRect(0, 0, W, H);
+  headline('99 PUJIAN VS 1 KRITIK', ['MANA YANG KAMU', 'INGAT SAMPAI', 'MALAM?'], t, 0.2, 5.0, { y: 300, size: 56 });
+}
+
+function sceneFor(t) { return t < 5 ? S_hook : t < 25 ? S_fill : t < 37 ? S_night : t < 62.2 ? S_cards : t < 74 ? S_dawn : S_end; }
+const CUTS = [[37, S_night, S_cards, .5], [62.2, S_cards, S_dawn, .55]];
+const bufs = [0, 1].map(() => { const c = document.createElement('canvas'); c.width = 1080; c.height = 1920; return c; });
+function renderTo(buf, fn, t) {
+  const prev = ctx; ctx = buf.getContext('2d');
+  ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H); fn(t);
+  ctx = prev; return buf;
+}
+function blit(buf, scale, blur, alpha) {
+  ctx.save(); ctx.globalAlpha = alpha; if (blur > .2) ctx.filter = `blur(${blur.toFixed(1)}px)`;
+  ctx.translate(W / 2, H / 2); ctx.scale(scale, scale); ctx.drawImage(buf, -W / 2, -H / 2, W, H); ctx.restore();
+}
+function draw(T) {
+  NT = T; const t = toStory(T);
+  ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  // kamera: melayang pelan, "bernapas" di tiap ketukan, bergetar saat batu jatuh
+  const pulseAmt = t < 25 ? 1 : t < 37 ? .4 : t < 62.2 ? .6 : 1;
+  const impact = toVideo(STONE_LAND), sh = T > impact ? Math.exp(-(T - impact) * 5) : 0;
+  ctx.save();
+  ctx.translate(W / 2 + Math.sin(T * .31) * 4 + Math.sin(T * 53) * 9 * sh, H / 2 + Math.cos(T * .23) * 4 + Math.cos(T * 41) * 7 * sh);
+  ctx.rotate(Math.sin(T * .17) * .004 + Math.sin(T * 37) * .006 * sh);
+  const z = 1.03 + beatPulse(T) * .007 * pulseAmt; ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+  const cut = CUTS.find(([c, , , d]) => Math.abs(t - c) < d);
+  if (cut) {
+    const [c, A, B, d] = cut, k = easeInOut((t - (c - d)) / (2 * d));
+    blit(renderTo(bufs[0], A, t), 1 + .12 * k, 14 * k, 1);
+    blit(renderTo(bufs[1], B, t), 1.12 - .12 * k, 14 * (1 - k), k);
+  } else {
+    blit(renderTo(bufs[0], sceneFor(t), t), 1, 0, 1);
+  }
+  ctx.restore();
+  caption(t);
+  const fade = Math.max(1 - prog(T, 0, .6), prog(T, DURATION - 1.4, DURATION));
+  if (fade > 0) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, W, H); }
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .75);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${.35 + beatPulse(T) * .04 * pulseAmt})`);
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+
+// daftar efek suara (waktu video) untuk audio.py
+function sfxEvents() {
+  const ev = [], V = toVideo, add = (t, type, extra = {}) => ev.push({ t: +V(t).toFixed(3), type, ...extra });
+  add(.2, 'title'); add(5, 'whoosh_soft');
+  STAR_LAND.forEach((l, i) => add(l, 'star', { i }));
+  add(STONE_DROP, 'fall'); add(STONE_LAND, 'impact');
+  add(22.2, 'sting');
+  stars.forEach((s, i) => add(s.leave + .3, 'rise', { i }));
+  add(36.4, 'whoosh'); add(37.2, 'title');
+  add(39.0, 'fall_short'); add(39.6, 'clank'); add(44.0, 'whoosh'); add(44.4, 'title');
+  [0, 1, 2].forEach(i => add(45.2 + i * .35, 'bar', { i })); add(52.0, 'whoosh'); add(52.4, 'title');
+  add(53.2, 'eyes'); add(53.6, 'alert'); add(57.0, 'whoosh'); add(57.4, 'title');
+  [1, 2, 3, 4, 5].forEach(k => add(58 + k * 2 / 6, 'place', { k })); add(60.1, 'balance');
+  add(61.7, 'whoosh'); add(65.8, 'sprout'); add(67.6, 'leaf_fly'); add(69.0, 'leaf_on');
+  add(70.35, 'set_down');
+  [.25, .5, .75, 1].forEach(w => add(69.8 + 1.6 * w, 'step'));
+  stars.forEach((s, i) => add(s.back + .2, 'return', { i }));
+  add(72.9, 'riser'); add(74.4, 'end_hit');
+  return ev.sort((a, b) => a.t - b.t);
+}
+window.draw = draw; window.DURATION = DURATION; window.sfxEvents = sfxEvents;
+window.MUSIC = { impact: toVideo(STONE_LAND), night: toVideo(25), cards: toVideo(37), dawn: toVideo(62.2), end: toVideo(74) };
+if (!/render/.test(location.hash)) {
+  const start = performance.now();
+  (function loop() { draw(((performance.now() - start) / 1000) % DURATION); requestAnimationFrame(loop); })();
+}
+</script>
+</body></html>
