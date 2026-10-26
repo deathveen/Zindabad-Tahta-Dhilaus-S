@@ -1,0 +1,454 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="../branding/brand.js"></script>
+<script src="vo_env.js"></script>
+<script>
+// Faedah Harian · "3 Kunci, 1 Pintu" (Tahajud, Istighfar, Takwa).
+// Waktu animasi = waktu VO (detik). Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+const W = 720, H = 1280, SS = 1.5;
+const VO_END = 85.84, DURATION = 89.4;
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+let NT = 0;
+</script>
+<script src="lib.js"></script>
+<script>
+// ---------- naskah (caption mengikuti VO; bagian berbahasa Inggris diterjemahkan) ----------
+const CAPTIONS = [
+  [0.15, 2.6, 'Dunia ini seperti *matrix*,'],
+  [2.6, 5.2, 'tapi cuma ada *3 hal* yang kamu butuhkan.'],
+  [5.24, 8.0, 'Pertama, *Tahajud*.'],
+  [8.0, 10.69, 'Bangun 5–10 menit sebelum Subuh, lalu shalat Tahajud.'],
+  [10.69, 13.2, 'Tahajud itu seperti *anak panah yang tak pernah meleset*.'],
+  [13.2, 15.88, 'Kamu akan mendapatkannya *bi-idznillah*, selama kamu bangun dan shalat Tahajud.'],
+  [15.88, 19.71, 'Cobalah bertahan *lebih lama* dalam sujud,'],
+  [19.71, 23.67, 'karena saat sujud, kita *paling dekat* dengan Allah.'],
+  [23.67, 27.04, 'Kedua, *istighfar*, minimal 1.000 kali sehari.'],
+  [27.04, 31.48, 'Istighfar *membersihkan* hati, pikiran, dan jiwa.'],
+  [31.48, 36.69, 'Saat kamu merasa tak layak mendapat yang kamu inginkan,'],
+  [36.69, 40.55, 'dan tak mengerti kenapa, ada banyak *dosa* di hati kita.'],
+  [40.55, 42.81, 'Salah yang menumpuk dan tertimbun.'],
+  [42.81, 47.04, 'Kepingan yang hilang itu adalah *istighfar*,'],
+  [47.04, 49.99, 'yang membuat hatimu *lebih terbuka*,'],
+  [49.99, 55.0, 'dan doamu lebih mudah *dikabulkan*.'],
+  [55.1, 57.64, 'Ketiga, *takwa*.'],
+  [57.64, 61.25, 'Sadar akan Allah, beribadah seakan *melihat-Nya*.'],
+  [61.25, 65.98, '*Wa man yattaqillāha yaj‘al lahū makhrajā*,'],
+  [65.98, 68.6, '*wa yarzuqhu min ḥaitsu lā yaḥtasib*.'],
+  [68.6, 71.4, 'Siapa bertakwa kepada Allah, Dia beri *jalan keluar*'],
+  [71.4, 74.15, 'dari kesulitan, dari setiap keadaan,'],
+  [74.15, 77.58, 'dari arah yang *tak disangka-sangka*.'],
+  [77.58, 81.96, 'Ini *janji Allah*. Maka beribadahlah seakan melihat-Nya,'],
+  [81.96, 85.7, 'dan *pintu-pintu* akan terbuka dari arah yang tak kamu bayangkan.'],
+];
+const UNLOCK = [23.2, 54.6, 77.15];     // gembok 1, 2, 3 terbuka
+const skyStars = (() => { const r = rng(42), o = []; for (let i = 0; i < 140; i++) o.push({ x: r() * W, y: r() * 780, s: .6 + r() * 1.6, p: r() * 6.28 }); return o; })();
+const voAt = T => VO_ENV[Math.max(0, Math.min(VO_ENV.length - 1, Math.round(T * 30)))] || 0;
+const talkVO = T => clamp((voAt(T) - .15) * 1.6) * (.6 + .4 * Math.abs(Math.sin(T * 23)));
+
+// ---------- elemen ----------
+function padlock(x, y, s, openK, icon, t) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  const gold = openK > 0 ? mix('#9AA0AB', '#F2B544', clamp(openK * 2)) : '#9AA0AB';
+  if (openK > 0) { const g = ctx.createRadialGradient(0, 0, 4, 0, 0, 46); g.addColorStop(0, `rgba(255,210,110,${.55 * openK})`); g.addColorStop(1, 'rgba(255,210,110,0)'); ctx.fillStyle = g; ctx.fillRect(-46, -46, 92, 92); }
+  // gagang: naik dan berputar saat terbuka
+  ctx.save(); ctx.translate(10, -8 - openK * 9); ctx.rotate(-openK * .5);
+  ctx.strokeStyle = gold; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(-10, -6, 12, Math.PI, 0); ctx.lineTo(2, 6); ctx.moveTo(-22, -6); ctx.lineTo(-22, 4); ctx.stroke(); ctx.restore();
+  ctx.fillStyle = gold; roundRect(-20, -10, 40, 32, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; roundRect(-20, 12, 40, 10, 5); ctx.fill();
+  ctx.save(); ctx.translate(0, 6); ctx.fillStyle = openK > .5 ? '#5A3B0A' : '#3F434C'; ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 2.4;
+  if (icon === 'bulan') { ctx.beginPath(); ctx.arc(0, 0, 7, 0, 6.28); ctx.fill(); ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(3.5, -2.5, 6, 0, 6.28); ctx.fill(); }
+  if (icon === 'tetes') { ctx.beginPath(); ctx.moveTo(0, -8); ctx.quadraticCurveTo(8, 2, 0, 7); ctx.quadraticCurveTo(-8, 2, 0, -8); ctx.fill(); }
+  if (icon === 'cahaya') { for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 3, Math.sin(a) * 3); ctx.lineTo(Math.cos(a) * 8, Math.sin(a) * 8); ctx.stroke(); } }
+  ctx.restore(); ctx.restore();
+}
+function locksHUD(T, alpha) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  ['bulan', 'tetes', 'cahaya'].forEach((ic, i) => {
+    const k = easeOut(prog(T, UNLOCK[i], UNLOCK[i] + .5)), pop = 1 + .35 * Math.sin(Math.PI * prog(T, UNLOCK[i], UNLOCK[i] + .45));
+    padlock(W / 2 + (i - 1) * 74, 122, .78 * pop, k, ic, T);
+  });
+  ctx.restore();
+}
+// pintu besar berlengkung dengan 3 gembok
+function bigDoor(T, cx, gy, openK, dropK, warm) {
+  const dw = 250, dh = 400, top = gy - dh;
+  // cahaya di balik pintu
+  const lg = ctx.createRadialGradient(cx, gy - dh * .45, 10, cx, gy - dh * .45, 420);
+  lg.addColorStop(0, `rgba(255,236,180,${.15 + .85 * openK})`); lg.addColorStop(1, 'rgba(255,236,180,0)');
+  ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
+  // bingkai batu
+  ctx.fillStyle = mix('#3B3352', '#B98552', warm); ctx.beginPath();
+  ctx.moveTo(cx - dw / 2 - 26, gy); ctx.lineTo(cx - dw / 2 - 26, top + 40); ctx.arc(cx, top + 40, dw / 2 + 26, Math.PI, 0); ctx.lineTo(cx + dw / 2 + 26, gy); ctx.closePath(); ctx.fill();
+  // lubang pintu (terang saat terbuka)
+  ctx.save(); ctx.beginPath(); ctx.moveTo(cx - dw / 2, gy); ctx.lineTo(cx - dw / 2, top + 40); ctx.arc(cx, top + 40, dw / 2, Math.PI, 0); ctx.lineTo(cx + dw / 2, gy); ctx.closePath(); ctx.clip();
+  const ig = ctx.createLinearGradient(0, top, 0, gy); ig.addColorStop(0, '#FFF6DA'); ig.addColorStop(1, '#FFD98A');
+  ctx.fillStyle = ig; ctx.fillRect(cx - dw, top - 10, dw * 2, dh + 20);
+  // daun pintu berengsel di kiri, menyempit saat terbuka
+  const pw = dw * (1 - .85 * openK);
+  ctx.fillStyle = mix('#5A3B2A', '#8A5A3A', warm); ctx.fillRect(cx - dw / 2, top - 10, pw, dh + 20);
+  ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 3;
+  for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(cx - dw / 2 + pw * i / 4, top); ctx.lineTo(cx - dw / 2 + pw * i / 4, gy); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(cx - dw / 2, top - 10, pw * .12, dh + 20);
+  ctx.restore();
+  // gembok di tengah daun pintu: terbuka lalu jatuh
+  ['bulan', 'tetes', 'cahaya'].forEach((ic, i) => {
+    const k = easeOut(prog(T, UNLOCK[i], UNLOCK[i] + .5));
+    const d = dropK ? easeIn(clamp(dropK * 1.6 - i * .3)) : 0;
+    ctx.save(); ctx.globalAlpha = 1 - d;
+    padlock(cx - dw / 2 + pw * .5 + d * (i - 1) * 40, gy - 300 + i * 92 + d * 330, 1.35, k, ic, T);
+    ctx.restore();
+  });
+}
+function rays(cx, cy, r0, r1, n, a, color = '255,236,180', rot = 0) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot); ctx.globalAlpha = a;
+  for (let i = 0; i < n; i++) {
+    const ang = i / n * Math.PI * 2, w = .07;
+    const g = ctx.createLinearGradient(0, 0, Math.cos(ang) * r1, Math.sin(ang) * r1);
+    g.addColorStop(0, `rgba(${color},.55)`); g.addColorStop(1, `rgba(${color},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(Math.cos(ang - w) * r0, Math.sin(ang - w) * r0); ctx.lineTo(Math.cos(ang - w) * r1, Math.sin(ang - w) * r1);
+    ctx.lineTo(Math.cos(ang + w) * r1, Math.sin(ang + w) * r1); ctx.lineTo(Math.cos(ang + w) * r0, Math.sin(ang + w) * r0); ctx.fill();
+  }
+  ctx.restore();
+}
+function dalilCard(T, a, header, arab, terj, src, opts = {}) {
+  const k = easeOut(prog(T, a, a + .7)), y0 = opts.y || 230, h = opts.h || 400;
+  if (k <= 0) return;
+  ctx.save(); ctx.globalAlpha = k * (opts.alpha ?? 1); ctx.translate(0, (1 - k) * 24); ctx.textAlign = 'center';
+  ctx.fillStyle = opts.bg || 'rgba(255,248,230,.10)'; roundRect(54, y0, W - 108, h, 30); ctx.fill();
+  ctx.strokeStyle = 'rgba(242,181,68,.55)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.font = '700 15px Inter'; ctx.letterSpacing = '4px'; ctx.fillStyle = 'rgba(255,244,224,.85)'; ctx.fillText(header, W / 2, y0 + 44); ctx.letterSpacing = '0px';
+  ctx.font = `700 ${opts.arabSize || 48}px FreeSerif`; ctx.fillStyle = AMBER; ctx.shadowColor = 'rgba(255,190,80,.45)'; ctx.shadowBlur = 16;
+  arab.forEach((l, i) => ctx.fillText(l, W / 2, y0 + 118 + i * (opts.arabSize || 48) * 1.35));
+  ctx.shadowBlur = 0; ctx.font = 'italic 500 22px Inter'; ctx.fillStyle = CREAM;
+  const ty = y0 + 118 + arab.length * (opts.arabSize || 48) * 1.35 + 14;
+  terj.forEach((l, i) => ctx.fillText(l, W / 2, ty + i * 31));
+  ctx.font = '600 14px Inter'; ctx.fillStyle = 'rgba(255,244,224,.6)'; ctx.fillText(src, W / 2, y0 + h - 22);
+  ctx.restore();
+}
+function sajadah(x, y, w) { ctx.fillStyle = '#2F6B5B'; roundRect(x - w / 2, y - 5, w, 13, 4); ctx.fill(); ctx.fillStyle = '#D8B25A'; ctx.fillRect(x - w / 2 + 7, y - 2, w - 14, 2); ctx.fillRect(x - w / 2 + 7, y + 4, w - 14, 1.5); }
+function rifdaCorner(T, a, b, arms = 'chest') {
+  const rin = easeOut(prog(T, a, a + .7)), rout = easeIn(prog(T, b - .5, b));
+  if (rin <= 0 || rout >= 1) return;
+  drawRifda(lerp(-120, 92, rin) - rout * 220, 905, .82, { arms, talk: talkVO(T), look: .5, label: prog(T, a + .4, a + .8) * (1 - prog(T, a + 2.6, a + 3)) });
+}
+
+// ---------- adegan ----------
+function S_hook(T) {
+  sky([[0, '#0B1030'], [.6, '#1E2452'], [1, '#2A2350']]);
+  twinkle(T, 1);
+  // hujan kode "matrix" memudar
+  const mk = 1 - prog(T, 2.2, 3.4);
+  if (mk > 0) {
+    const r = rng(5); ctx.font = '700 18px DejaVu Sans Mono'; ctx.textAlign = 'center';
+    for (let c = 0; c < 26; c++) {
+      const x = 14 + c * 27.5, sp = 120 + r() * 160, off = r() * 1400;
+      for (let j = 0; j < 14; j++) {
+        const y = ((T * sp + off) % 1500) - j * 24 - 100; if (y < -20 || y > H) continue;
+        ctx.globalAlpha = mk * (j === 0 ? .9 : .5 * (1 - j / 14)); ctx.fillStyle = j === 0 ? '#D8FFE0' : '#3FDA7A';
+        ctx.fillText(((c * 7 + j * 3 + Math.floor(T * 8)) % 2) ? '1' : '0', x, y);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  hills([{ y: 900, a: 10, f: .008, p: 1, c: '#161838' }], T);
+  bigDoor(T, 420, 902, 0, 0, 0);
+  headline('CUMA BUTUH', ['3 KUNCI'], T, 2.6, 0, { y: 190, size: 72 });
+  const rin = easeOut(prog(T, .4, 1.2));
+  drawRifda(lerp(-140, 150, rin), 905, 1.1, { arms: T > 1 && T < 2.4 ? 'wave' : 'point', talk: talkVO(T), label: prog(T, 1, 1.4), look: .5 });
+}
+
+function bedroom(T, light = 0) {
+  sky([[0, '#141A3A'], [1, '#232B55']]);
+  // jendela dengan bulan
+  ctx.fillStyle = '#0B0F28'; roundRect(430, 250, 200, 240, 14); ctx.fill();
+  ctx.save(); roundRect(440, 260, 180, 220, 10); ctx.clip();
+  const wg = ctx.createLinearGradient(0, 260, 0, 480); wg.addColorStop(0, '#1C2A66'); wg.addColorStop(1, mix('#3B3A78', '#8A6FA8', light)); ctx.fillStyle = wg; ctx.fillRect(440, 260, 180, 220);
+  ctx.fillStyle = '#F4EBD0'; ctx.beginPath(); ctx.arc(560, 320, 26, 0, 6.28); ctx.fill(); ctx.fillStyle = '#1C2A66'; ctx.beginPath(); ctx.arc(572, 312, 23, 0, 6.28); ctx.fill();
+  const r = rng(9); for (let i = 0; i < 14; i++) { ctx.globalAlpha = .4 + .5 * Math.sin(T * 2 + i) ** 2; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(445 + r() * 170, 265 + r() * 150, 1.3, 0, 6.28); ctx.fill(); }
+  ctx.globalAlpha = 1; ctx.restore();
+  ctx.fillStyle = '#5A4A7A'; ctx.fillRect(528, 250, 4, 240); ctx.fillRect(430, 366, 200, 4);
+  ctx.fillStyle = '#7A5A9A'; [[410, 0], [630, 1]].forEach(([x, s]) => { ctx.beginPath(); ctx.moveTo(x, 236); ctx.quadraticCurveTo(x + (s ? 14 : -14), 380, x + (s ? -6 : 6), 510); ctx.lineTo(x + (s ? 22 : -22), 510); ctx.quadraticCurveTo(x + (s ? 30 : -30), 380, x + (s ? 22 : -22), 236); ctx.fill(); });
+  // lantai
+  ctx.fillStyle = '#1A1838'; ctx.fillRect(0, 880, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 8; i++) ctx.fillRect(0, 900 + i * 40, W, 2);
+}
+function clock(T, x, y) {
+  const ring = T > 6.9 && T < 8.4 ? Math.sin(T * 60) * 4 : 0;
+  ctx.save(); ctx.translate(x + ring, y);
+  ctx.fillStyle = '#F6EBD5'; roundRect(-78, -40, 156, 80, 16); ctx.fill();
+  ctx.font = '800 40px Inter'; ctx.fillStyle = '#2A2233'; ctx.textAlign = 'center'; ctx.fillText('04:20', 0, 12);
+  ctx.font = '700 13px Inter'; ctx.fillStyle = '#7A6A5C'; ctx.fillText('Subuh 04:30', 0, 32);
+  if (ring) { ctx.strokeStyle = '#F2B544'; ctx.lineWidth = 3; [-1, 1].forEach(d => { ctx.beginPath(); ctx.arc(d * 96, 0, 14, -.8, .8); ctx.stroke(); }); }
+  ctx.restore();
+}
+function S_tahajud(T) {
+  const lightK = prog(T, 10.5, 23.6);
+  bedroom(T, lightK * .4);
+  ctx.save(); ctx.globalAlpha = 1 - prog(T, 19.2, 19.7); clock(T, 190, 330); ctx.restore();
+  if (T < 8.6) {
+    // tidur, lalu alarm berbunyi
+    const awake = prog(T, 7.2, 7.4);
+    ctx.fillStyle = '#4A3A2A'; roundRect(140, 800, 440, 90, 12); ctx.fill();
+    ctx.fillStyle = '#E8E0F0'; roundRect(150, 770, 420, 50, 18); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; roundRect(160, 742, 120, 50, 22); ctx.fill();
+    head(232, 742, 30, { wear: 'kopiah', capColor: '#2B2B33', mood: awake ? .2 : .5, closed: !awake, side: 0, look: awake ? .5 : 0 });
+    ctx.fillStyle = '#5FA8A0'; ctx.beginPath(); ctx.moveTo(250, 790); ctx.quadraticCurveTo(400, 730 + Math.sin(T * 2) * 4, 560, 780); ctx.lineTo(560, 820); ctx.lineTo(250, 820); ctx.fill();
+    if (!awake) { ctx.font = '800 26px Inter'; ctx.fillStyle = 'rgba(255,255,255,.7)'; [0, 1, 2].forEach(i => { const p = ((T * .6 + i / 3) % 1); ctx.globalAlpha = Math.sin(p * Math.PI) * .8; ctx.fillText('z', 270 + p * 40 + i * 6, 700 - p * 80); }); ctx.globalAlpha = 1; }
+    else { const ek = backOut(prog(T, 7.3, 7.7)); ctx.save(); ctx.translate(232, 680); ctx.scale(ek, ek); ctx.font = '900 46px Inter'; ctx.fillStyle = AMBER; ctx.textAlign = 'center'; ctx.fillText('!', 0, 0); ctx.restore(); }
+  } else if (T < 10.69) {
+    // bangun dan meregangkan badan
+    ctx.fillStyle = '#4A3A2A'; roundRect(60, 800, 260, 90, 12); ctx.fill(); ctx.fillStyle = '#E8E0F0'; roundRect(70, 770, 240, 50, 18); ctx.fill();
+    const pop = backOut(prog(T, 8.6, 9.1));
+    drawDafa(470, 880, .95, { t: T, mood: 1, arms: 'lift', up: easeInOut(prog(T, 8.8, 9.6)) * (1 - prog(T, 10.2, 10.6)), target: 'cheer', squash: (1 - pop) * .4 });
+  } else {
+    // shalat: berdiri, anak panah cahaya, lalu sujud panjang
+    const glow = ctx.createRadialGradient(360, 760, 20, 360, 760, 380); glow.addColorStop(0, `rgba(255,226,150,${.12 + .2 * lightK})`); glow.addColorStop(1, 'rgba(255,226,150,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+    sajadah(370, 884, 220);
+    if (T < 15.88) {
+      drawDafa(360, 880, .95, { t: T, mood: .4, arms: 'fold' });
+      // anak panah cahaya melesat ke bintang
+      const ak = easeIn(prog(T, 11.3, 12.3)), hit = prog(T, 12.3, 13.4);
+      const tx = 560, ty = 300;
+      if (ak > 0 && ak < 1) {
+        const x = lerp(360, tx, ak), y = lerp(690, ty, ak), ang = Math.atan2(ty - 690, tx - 360);
+        ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+        const g = ctx.createLinearGradient(-160, 0, 0, 0); g.addColorStop(0, 'rgba(255,220,140,0)'); g.addColorStop(1, 'rgba(255,240,200,.9)');
+        ctx.fillStyle = g; ctx.fillRect(-160, -3, 160, 6);
+        ctx.fillStyle = '#FFF4D0'; ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-6, -9); ctx.lineTo(-2, 0); ctx.lineTo(-6, 9); ctx.fill();
+        ctx.restore();
+      }
+      if (hit > 0) { rays(tx, ty, 10, 140 * easeOut(hit), 12, (1 - hit) * .9, '255,226,150', T); drawStar(tx, ty, 14 * (1 + .4 * Math.sin(Math.PI * hit)), T, 1, 1.4); }
+    } else {
+      const sk = backOut(prog(T, 15.9, 16.5));
+      ctx.save(); ctx.translate(380, 884); ctx.scale(.95, .95 * (0.7 + .3 * sk));
+      ctx.filter = 'none'; figure(0, 0, 1, { pose: 'sujud', robe: '#5FA8A0', wear: 'kopiah', capColor: '#2B2B33', costume: 'rumah' });
+      ctx.restore();
+      // cincin waktu: sujud lebih lama
+      const rk = prog(T, 16.2, 23.2);
+      ctx.save(); ctx.strokeStyle = 'rgba(255,236,180,.25)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(380, 820, 120, 0, 6.28); ctx.stroke();
+      ctx.strokeStyle = AMBER; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(380, 820, 120, -Math.PI / 2, -Math.PI / 2 + rk * Math.PI * 2); ctx.stroke(); ctx.restore();
+      // cahaya turun dari atas
+      const lc = ctx.createLinearGradient(0, 0, 0, 880); lc.addColorStop(0, `rgba(255,236,180,${.05 + .25 * prog(T, 19.5, 22)})`); lc.addColorStop(1, 'rgba(255,236,180,0)');
+      ctx.fillStyle = lc; ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(440, 0); ctx.lineTo(520, 880); ctx.lineTo(240, 880); ctx.fill();
+      dalilCard(T, 19.5, 'HR. MUSLIM NO. 482', ['أَقْرَبُ مَا يَكُونُ الْعَبْدُ', 'مِنْ رَبِّهِ وَهُوَ سَاجِدٌ'], ['“Keadaan terdekat seorang hamba dengan', 'Rabb-nya adalah ketika ia sujud.”'], 'Hadis shahih', { y: 190, h: 360, arabSize: 44, bg: 'rgba(16,20,52,.94)' });
+      rifdaCorner(T, 19.6, 23.9);
+    }
+  }
+}
+
+// lentera hati untuk adegan istighfar
+const SMUDGES = (() => { const r = rng(17), o = []; for (let i = 0; i < 9; i++) o.push({ x: (r() - .5) * 120, y: -30 + (r() - .5) * 90, s: 10 + r() * 14, on: 36.8 + i * .62, off: 43.2 + i * .72 }); return o; })();
+function heartPath(x, y, s) {
+  ctx.beginPath(); ctx.moveTo(x, y + 60 * s);
+  ctx.bezierCurveTo(x - 110 * s, y - 10 * s, x - 70 * s, y - 100 * s, x, y - 50 * s);
+  ctx.bezierCurveTo(x + 70 * s, y - 100 * s, x + 110 * s, y - 10 * s, x, y + 60 * s); ctx.closePath();
+}
+function S_istighfar(T) {
+  const clean = easeInOut(prog(T, 43, 50.5));
+  sky([[0, mix('#0E2A36', '#2C6E78', clean)], [1, mix('#173E4A', '#9FD3C8', clean * .7)]]);
+  particles(T, 'rgba(220,255,250,1)', 26, 23, .4 + clean);
+  ctx.fillStyle = mix('#0C222C', '#2F5E4E', clean); ctx.fillRect(0, 880, W, H);
+  headline('KEDUA', ['ISTIGHFAR'], T, 23.85, 31.4, { y: 230, size: 70 });
+  // lentera hati
+  const hx = 430, hy = 560, dim = clamp(.65 - .5 * prog(T, 36.6, 42.8) + .9 * clean);
+  const hg = ctx.createRadialGradient(hx, hy - 10, 10, hx, hy - 10, 260); hg.addColorStop(0, `rgba(255,214,120,${.55 * dim})`); hg.addColorStop(1, 'rgba(255,214,120,0)');
+  ctx.fillStyle = hg; ctx.fillRect(0, 0, W, H);
+  if (T > 50) rays(hx, hy - 10, 70, 520, 14, .7 * prog(T, 50, 51.5), '255,226,150', T * .15);
+  const hk = backOut(prog(T, 24.3, 25.1)), hs = 1.15 * hk * (1 + .03 * Math.sin(T * 3));
+  ctx.save(); heartPath(hx, hy, hs); ctx.fillStyle = `rgba(255,${Math.round(190 + 50 * dim)},${Math.round(120 + 60 * dim)},${.35 + .55 * dim})`; ctx.fill();
+  ctx.lineWidth = 5; ctx.strokeStyle = '#F6EBD5'; ctx.stroke(); ctx.clip();
+  SMUDGES.forEach(m => {
+    const a = easeOut(prog(T, m.on, m.on + .4)) * (1 - easeIn(prog(T, m.off, m.off + .5)));
+    if (a <= 0) return; ctx.globalAlpha = a * .85; ctx.fillStyle = '#2B2530';
+    ctx.beginPath(); ctx.ellipse(hx + m.x * hs, hy + m.y * hs, m.s * hs, m.s * .75 * hs, m.x, 0, 6.28); ctx.fill();
+  });
+  ctx.globalAlpha = 1; ctx.restore();
+  // kilau saat noda terhapus
+  SMUDGES.forEach(m => { const p = prog(T, m.off, m.off + .7); if (p > 0 && p < 1) { drawStar(hx + m.x * hs, hy + m.y * hs - p * 30, 7 * (1 - p) + 3, T * 3, 1 - p, 1.2, '#E6FFF8'); } });
+  // label hati · pikiran · jiwa
+  [['hati', 27.5, -150, -120], ['pikiran', 28.5, 150, -100], ['jiwa', 29.5, 0, 120]].forEach(([l, a, dx, dy]) => {
+    const k = backOut(prog(T, a, a + .4)) * (1 - prog(T, 31, 31.4)); if (k <= 0) return;
+    ctx.save(); ctx.translate(hx + dx * .9, hy + dy); ctx.scale(k, k); ctx.fillStyle = 'rgba(246,235,213,.95)'; roundRect(-54, -20, 108, 40, 20); ctx.fill();
+    ctx.font = '800 20px Inter'; ctx.fillStyle = '#173E4A'; ctx.textAlign = 'center'; ctx.fillText(l, 0, 7); ctx.restore();
+  });
+  // tanda tanya: bingung kenapa doa belum terkabul
+  const q = easeOut(prog(T, 36.7, 37.2)) * (1 - prog(T, 40.3, 40.7));
+  if (q > 0) { ctx.save(); ctx.globalAlpha = q; ctx.font = '900 54px Inter'; ctx.fillStyle = '#F6EBD5'; ctx.textAlign = 'center'; ctx.fillText('?', 250 + Math.sin(T * 3) * 4, 700); ctx.restore(); }
+  // penghitung istighfar
+  const n = Math.round(1000 * easeInOut(prog(T, 24.5, 54.4)));
+  ctx.save(); ctx.textAlign = 'center'; ctx.font = '700 14px Inter'; ctx.letterSpacing = '3px'; ctx.fillStyle = 'rgba(246,235,213,.8)'; ctx.fillText('ISTIGHFAR', 560, 790); ctx.letterSpacing = '0px';
+  ctx.font = '900 46px Inter'; ctx.fillStyle = AMBER; ctx.fillText(n.toLocaleString('id-ID'), 560, 840); ctx.restore();
+  // Dafa duduk berzikir dengan tasbih
+  const sad = prog(T, 33, 36.5) * (1 - prog(T, 45, 47));
+  ctx.save(); ctx.translate(250, 884); ctx.scale(.95, .95);
+  figure(0, 0, 1, { pose: 'duduk', robe: '#5FA8A0', wear: 'kopiah', capColor: '#2B2B33', costume: 'rumah', mood: lerp(.6, -.9, sad) + clean * .5 });
+  // tasbih berputar
+  for (let i = 0; i < 12; i++) { const a = i / 12 * 6.28 + T * 2.2; ctx.fillStyle = i % 4 ? '#7A4E2C' : '#C08A4A'; ctx.beginPath(); ctx.arc(40 + Math.cos(a) * 14, -26 + Math.sin(a) * 9, 3.6, 0, 6.28); ctx.fill(); }
+  ctx.restore();
+  // doa terangkat: cahaya naik dari hati
+  if (T > 50.5) for (let i = 0; i < 10; i++) { const p = ((T - 50.5) * .5 + i / 10) % 1; drawStar(hx + Math.sin(i * 2.1 + T) * 60, hy - 80 - p * 420, 4 + (i % 3), T + i, Math.sin(p * Math.PI) * .9, 1); }
+}
+
+function S_taqwa(T) {
+  // 55.10–61.25: takwa = sadar akan Allah; cahaya lembut dari atas (tanpa menggambarkan Dzat-Nya)
+  sky([[0, '#FFF4DA'], [.7, '#F7DDB0'], [1, '#EFC98C']]);
+  const lc = ctx.createLinearGradient(0, 0, 0, 880); lc.addColorStop(0, 'rgba(255,255,255,.75)'); lc.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = lc; ctx.beginPath(); ctx.moveTo(270, 0); ctx.lineTo(450, 0); ctx.lineTo(540, 880); ctx.lineTo(180, 880); ctx.fill();
+  particles(T, 'rgba(255,214,120,1)', 30, 51, .5);
+  hills([{ y: 860, a: 12, f: .007, p: 2, c: '#A9CBA0' }, { y: 884, a: 6, f: .01, p: 4, c: '#4E8B5F' }], T);
+  ctx.fillStyle = '#2F6247'; ctx.fillRect(0, 900, W, H);
+  headline('KETIGA', ['TAKWA'], T, 55.3, 0, { y: 230, size: 76, bigColor: B.daunGelap, smallColor: '#7A6A5C' });
+  sajadah(360, 886, 220);
+  drawDafa(360, 882, .95, { t: T, mood: .5, arms: 'fold' });
+  const ring = prog(T, 57.6, 61.2);
+  ctx.save(); ctx.globalAlpha = .6 * Math.sin(Math.PI * ring); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(360, 886, 90 + ring * 120, 16 + ring * 22, 0, 0, 6.28); ctx.stroke(); ctx.restore();
+}
+function S_ayat(T) {
+  sky([[0, '#10291F'], [1, '#234536']]);
+  const g = ctx.createRadialGradient(W / 2, 470, 40, W / 2, 470, 520); g.addColorStop(0, 'rgba(242,181,68,.16)'); g.addColorStop(1, 'rgba(242,181,68,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  particles(T, 'rgba(255,230,170,1)', 24, 61, .4);
+  dalilCard(T, 61.3, 'QS. AT-TALAQ: 2–3', ['وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجًا', 'وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ'],
+    ['“Barangsiapa bertakwa kepada Allah niscaya', 'Dia akan mengadakan baginya jalan keluar,', 'dan memberinya rezeki dari arah', 'yang tiada disangka-sangkanya.”'], 'Terjemahan Kemenag RI', { y: 210, h: 470, arabSize: 40 });
+  // garis bawah ayat yang sedang dibaca
+  const hl = T < 65.98 ? 0 : 1, uk = T < 68.6 ? easeOut(prog(T, hl ? 65.98 : 61.8, hl ? 67.8 : 64.8)) : 0;
+  if (uk > 0) { ctx.fillStyle = 'rgba(242,181,68,.7)'; const y = 210 + 118 + hl * 40 * 1.35 + 12; ctx.fillRect(W / 2 + 260 - 520 * uk, y, 520 * uk, 3); }
+  rifdaCorner(T, 61.6, 71.6);
+}
+function S_jalan(T) {
+  // 71.4–77.58: buntu di antara dinding, lalu pintu cahaya muncul dari arah tak terduga (atas)
+  const open = easeOut(prog(T, 74.15, 75.6));
+  sky([[0, mix('#241E3E', '#5B5490', open)], [1, mix('#3A2F55', '#C9A9C9', open)]]);
+  twinkle(T, 1 - open);
+  // pintu cahaya di langit
+  if (open > 0) {
+    rays(360, 250, 30, 700, 16, .8 * open, '255,236,180', T * .1);
+    ctx.save(); ctx.globalAlpha = open; ctx.fillStyle = '#FFF6DA'; ctx.shadowColor = '#FFE3A0'; ctx.shadowBlur = 50;
+    ctx.beginPath(); ctx.moveTo(310, 330); ctx.lineTo(310, 220); ctx.arc(360, 220, 50, Math.PI, 0); ctx.lineTo(410, 330); ctx.closePath(); ctx.fill(); ctx.restore();
+    const lc = ctx.createLinearGradient(0, 330, 0, 880); lc.addColorStop(0, `rgba(255,240,200,${.6 * open})`); lc.addColorStop(1, 'rgba(255,240,200,0)');
+    ctx.fillStyle = lc; ctx.beginPath(); ctx.moveTo(310, 330); ctx.lineTo(410, 330); ctx.lineTo(470, 884); ctx.lineTo(250, 884); ctx.fill();
+  }
+  // dinding batu kiri, kanan, dan depan
+  const wallC = mix('#4A4068', '#6E6290', open * .6);
+  const brick = (x, y, w, h) => { ctx.fillStyle = wallC; ctx.fillRect(x, y, w, h); ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(x, y, w, 5); ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 2; for (let j = y; j < y + h; j += 34) { ctx.beginPath(); ctx.moveTo(x, j); ctx.lineTo(x + w, j); ctx.stroke(); for (let i = x + ((j / 34) % 2 ? 0 : 30); i < x + w; i += 60) { ctx.beginPath(); ctx.moveTo(i, j); ctx.lineTo(i, j + 34); ctx.stroke(); } } };
+  brick(0, 420, 170, 470); brick(550, 420, 170, 470); brick(170, 600, 380, 290);
+  ctx.fillStyle = '#17142A'; ctx.fillRect(0, 884, W, H);
+  const lookUp = easeOut(prog(T, 74.4, 75.2));
+  drawDafa(360, 884, .95, { t: T, mood: lerp(-.7, 1, lookUp), look: 0, sad: 1 - lookUp, arms: 'lift', up: .45 * prog(T, 75.4, 76.2), target: 'cheer' });
+}
+function S_finale(T) {
+  const warm = easeInOut(prog(T, 77.6, 80));
+  sky([[0, mix('#1E2452', '#F7B7A3', warm)], [.6, mix('#2A2350', '#FFE6B5', warm)], [1, mix('#2A2350', '#FFD39A', warm)]]);
+  twinkle(T, 1 - warm);
+  hills([{ y: 900, a: 10, f: .008, p: 1, c: mix('#161838', '#4E8B5F', warm) }], T);
+  const openK = easeInOut(prog(T, 80.0, 82.6)), dropK = prog(T, 77.8, 79.4);
+  bigDoor(T, 360, 902, openK, dropK, warm);
+  if (openK > .2) rays(360, 680, 40, 900, 18, .6 * openK, '255,240,200', T * .12);
+  const walk = easeInOut(prog(T, 82.2, 85.6));
+  const x = lerp(120, 330, walk), hop = walk > 0 && walk < 1 ? Math.abs(Math.sin(walk * Math.PI * 6)) * 8 : 0;
+  ctx.save(); ctx.globalAlpha = 1 - prog(T, 85.0, 85.8);
+  drawDafa(x, 902 - hop, .9 * (1 - .25 * walk), { t: T, mood: 1, look: .6 });
+  ctx.restore();
+}
+function S_outro(T) {
+  const t0 = VO_END;
+  ctx.fillStyle = B.daunGelap; ctx.fillRect(0, 0, W, H);
+  const gy = 900, rise = easeOut(prog(T, t0 + .1, t0 + 1.3));
+  const g = ctx.createRadialGradient(W / 2, gy, 30, W / 2, gy, 520); g.addColorStop(0, 'rgba(242,181,68,.35)'); g.addColorStop(1, 'rgba(242,181,68,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  sunrise(W / 2, gy + (1 - rise) * 60, 170, 'rgba(242,181,68,.30)');
+  particles(T, 'rgba(255,240,200,1)', 26, 41, .6);
+  ctx.fillStyle = shade(B.daunGelap, .12); ctx.fillRect(0, gy, W, H);
+  [[90, .8], [640, .7], [170, .5], [560, .45]].forEach(([x, sc]) => sprout(x, gy + 4, sc * backOut(prog(T, t0 + .5, t0 + 1.3)), '#8BD17C', '#8BD17C'));
+  const ik = backOut(prog(T, t0 + .2, t0 + .9));
+  ctx.save(); ctx.translate(W / 2, 250); ctx.scale(ik, ik); iconB(0, 0, 88); ctx.restore();
+  headline('FOLLOW', [HANDLE], T, t0 + .4, 0, { y: 410, size: 40 });
+  const rk = easeOut(prog(T, t0 + .5, t0 + 1.3));
+  drawRifda(W / 2, gy + 6 + (1 - rk) * 80, 1.45, { arms: 'wave', mood: 1 });
+  ctx.save(); ctx.globalAlpha = prog(T, t0 + 1, t0 + 1.6); ctx.textAlign = 'center';
+  ctx.font = '600 26px Inter'; ctx.fillStyle = '#F6EBD5'; ctx.fillText('teman belajar & pengingat harianmu', W / 2, gy + 70);
+  const bp = 1 + .05 * Math.sin(T * 6) * prog(T, t0 + 1.6, t0 + 2.2);
+  ctx.translate(W / 2, gy + 150); ctx.scale(bp, bp);
+  ctx.fillStyle = B.fajar; ctx.beginPath(); ctx.roundRect(-120, -32, 240, 64, 32); ctx.fill();
+  ctx.font = '800 28px Inter'; ctx.fillStyle = B.daunGelap; ctx.fillText('+ Follow', 0, 10);
+  ctx.restore();
+}
+
+// ---------- susunan & render frame ----------
+const SCENES = [[0, S_hook], [5.24, S_tahajud], [23.67, S_istighfar], [55.1, S_taqwa], [61.25, S_ayat], [71.4, S_jalan], [77.58, S_finale], [VO_END, S_outro]];
+function sceneFor(T) { let f = SCENES[0][1]; SCENES.forEach(([a, fn]) => { if (T >= a) f = fn; }); return f; }
+const CUT_D = .35;
+const bufs = [0, 1].map(() => { const c = document.createElement('canvas'); c.width = 1080; c.height = 1920; return c; });
+function draw(T) {
+  NT = T;
+  ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.translate(W / 2 + Math.sin(T * .31) * 4, H / 2 + Math.cos(T * .23) * 4); ctx.rotate(Math.sin(T * .17) * .004);
+  const z = 1.03 + .008 * Math.sin(T * .5); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+  const cut = SCENES.slice(1).find(([c]) => Math.abs(T - c) < CUT_D);
+  if (cut) {
+    const i = SCENES.findIndex(([c]) => c === cut[0]), A = SCENES[i - 1][1], Bf = SCENES[i][1];
+    const k = easeInOut((T - (cut[0] - CUT_D)) / (2 * CUT_D));
+    blit(renderTo(bufs[0], A, T), 1 + .12 * k, 14 * k, 1);
+    blit(renderTo(bufs[1], Bf, T), 1.12 - .12 * k, 14 * (1 - k), k);
+  } else blit(renderTo(bufs[0], sceneFor(T), T), 1, 0, 1);
+  ctx.restore();
+  locksHUD(T, prog(T, 5.6, 6.3) * (1 - prog(T, 77.3, 77.7)));
+  caption(T);
+  if (T < VO_END - .3) watermark(.55 * prog(T, .8, 1.6));
+  const fade = Math.max(1 - prog(T, 0, .4), prog(T, DURATION - 1.2, DURATION));
+  if (fade > 0) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, W, H); }
+  const v = ctx.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .75);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.3)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+}
+
+// efek suara (detik video) untuk audio.py
+function sfxEvents() {
+  const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
+  add(.3, 'title'); add(.5, 'whoosh_soft'); add(2.6, 'title');
+  SCENES.slice(1).forEach(([c]) => add(c - .6, 'whoosh'));
+  add(7.0, 'alarm'); add(8.6, 'place', { k: 2 }); add(11.3, 'leaf_fly'); add(12.3, 'balance');
+  add(19.5, 'title'); UNLOCK.forEach(u => add(u, 'unlock'));
+  add(23.85, 'title'); [27.5, 28.5, 29.5].forEach((t, k) => add(t, 'place', { k: k + 1 }));
+  SMUDGES.forEach(m => add(m.on, 'smudge')); SMUDGES.forEach((m, i) => add(m.off, 'return', { i }));
+  add(36.7, 'eyes'); add(50.0, 'sprout');
+  add(55.3, 'title'); add(57.7, 'balance'); add(61.3, 'title');
+  add(72.6, 'riser'); add(74.15, 'end_hit');
+  [0, 1, 2].forEach(i => add(77.9 + i * .25, 'set_down'));
+  add(78.6, 'riser'); add(80.0, 'door_open');
+  [.15, .3, .45, .6, .75, .9].forEach(w => add(82.2 + 3.4 * w, 'step'));
+  add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
+  return ev.sort((a, b) => a.t - b.t);
+}
+// cover Reels (gambar diam untuk grid profil)
+function drawCover() {
+  NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  const T = 30;
+  sky([[0, '#0B1030'], [.55, '#1E2452'], [1, '#3A2F55']]); twinkle(T, 1);
+  hills([{ y: 1000, a: 10, f: .008, p: 1, c: '#161838' }], T);
+  ctx.save(); ctx.translate(0, 98); bigDoor(T, 420, 902, .18, 0, .25); ctx.restore();
+  const g = ctx.createLinearGradient(0, 0, 0, 560); g.addColorStop(0, 'rgba(11,16,48,.95)'); g.addColorStop(1, 'rgba(11,16,48,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, 560);
+  iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 104px Inter'; ctx.fillStyle = AMBER; ctx.fillText('3 KUNCI', 40, 250);
+  ctx.font = '900 60px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('PEMBUKA PINTU', 42, 322);
+  ctx.font = '700 30px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Tahajud · Istighfar · Takwa', 44, 378);
+  ctx.shadowBlur = 0;
+  drawRifda(150, 1050, 1.15, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+}
+window.drawCover = drawCover;
+window.draw = draw; window.DURATION = DURATION; window.sfxEvents = sfxEvents;
+window.MUSIC = { vo_end: VO_END };
+if (!/render/.test(location.hash)) {
+  const start = performance.now();
+  (function loop() { draw(((performance.now() - start) / 1000) % DURATION); requestAnimationFrame(loop); })();
+}
+</script>
+</body></html>
