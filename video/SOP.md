@@ -17,7 +17,8 @@ keputusan baru.
 | Musik | Instrumental buatan sendiri, lembut dan hangat |
 | SFX | Hanya di adegan yang membutuhkan |
 | Palet warna | Menyesuaikan isi konten per babak; warna Rifda dan gaya teks tetap |
-| Ajakan follow | **Belum diputuskan** (nama akun dan kalimat) |
+| Akun | **Faedah Harian** · `@faedahharian.official` (lihat Bagian 9) |
+| Ajakan follow | "Follow @faedahharian.official, teman belajar & pengingat harianmu" |
 
 Contoh hasil: `seratus-bintang-satu-batu.mp4`. Lembar desain karakter: `karakter/lembar-desain.png`.
 
@@ -143,7 +144,9 @@ MP4 1080×1920, H.264 + AAC, kerasnya -14 LUFS, puncak di bawah -1 dBTP.
 
 ## 5. Palet warna per suasana
 
-Palet dipilih per babak sesuai isi. Warna Rifda (`#F29BB8`, `#B9A6E0`) dan gaya teks tidak berubah.
+Palet dipilih per babak **sesuai isi**. Pilar konten **tidak punya warna tetap**: kisah di gurun
+memakai warna pasir walaupun pilarnya Aqidah/Kisah. Warna Rifda (`#F29BB8`, `#B9A6E0`) dan gaya
+teks tidak berubah.
 
 | Suasana | Arah warna |
 |---|---|
@@ -217,8 +220,45 @@ node video/karakter/shot.js video/karakter/sheet.html lembar.png
 
 ---
 
-## 9. Belum diputuskan
+## 9. Branding akun
 
-- [ ] **Ajakan follow:** nama akun dan kalimatnya
-- [ ] **Branding:** nama kanal, logo, warna identitas, watermark, kartu penutup, thumbnail/cover
-- [ ] Skill otomatis (`.claude/skills/animasi-reels/`) dibangun setelah branding selesai
+| Hal | Keputusan |
+|---|---|
+| Nama tampilan | Faedah Harian \| Ilmu Islam Sehari-hari |
+| Username | `@faedahharian.official` |
+| Konsep | Tunas (bertumbuh) + fajar (harian) + Rifda (teman belajar) |
+| Foto profil | **Logo B**: wajah Rifda dengan tunas di kerudung, latar hijau daun → `branding/logo/profil-B.png` |
+| Logo A (tunas di depan matahari pagi) | Watermark, aset kecil, logo dengan tulisan → `logo-A.png`, `logo-A-wordmark.png` |
+| Logo C (فَائِدَة يَوْمِيَّة) | Edisi khusus, misalnya Ramadan → `logo-C.png` |
+| Watermark video | `logo/watermark.png`, putih, pojok kiri atas, opasitas ±55% |
+| Kartu penutup | Latar hijau tua, logo B, "Follow @faedahharian.official", Rifda melambai, tombol "+ Follow" |
+| Cover Reels | Logo B kecil + nama di atas, label pilar, judul besar, Rifda menunjuk; latar mengikuti isi |
+
+**Bio:**
+```
+🌿 Bertumbuh lewat satu faedah setiap hari
+📚 Bahas: Kaidah | Hukum | Adab | Kisah | Parenting
+🤝 Follow untuk teman belajar & pengingat harianmu!
+```
+
+**Palet identitas** (untuk logo, kartu penutup, dan label; bukan untuk adegan):
+
+| Nama | Warna |
+|---|---|
+| Daun | `#4E8B5F` |
+| Daun gelap | `#234536` |
+| Fajar | `#F2B544` |
+| Krem | `#FBF5EA` |
+
+**Label pilar** (Kaidah, Hukum, Adab, Kisah, Parenting): kapsul hijau tua `#234536` dengan ikon
+putih (kunci, timbangan, hati, buku, keluarga). Warnanya netral dan sama untuk semua pilar.
+
+**File sumber:** `branding/brand.js` (elemen brand), `branding/brand.html` (lembar konsep
+→ `konsep-visual.png`), `branding/export.html` + `export.js` (ekspor logo:
+`node video/branding/export.js video/branding/logo`).
+
+---
+
+## 10. Belum diputuskan
+
+- [ ] Skill otomatis (`.claude/skills/animasi-reels/`)
