@@ -48,3 +48,8 @@ render penuh.
 
 - Musik dari luar dan VO tidak di-commit ke repo; hanya tertanam di MP4.
 - Kerasnya -14 LUFS dengan puncak di bawah -1,5 dBTP (sudah diatur `finalize.sh`).
+- **Kresek di VO WhatsApp.** Vonya kadang terlalu dekat dengan mic sehingga awal kata meletup dan
+  pecah (sampel melewati 1,0 setelah decode Opus). Filter `adeclip` ffmpeg tidak cukup.
+  `scripts/declip.py` (dipanggil `prep_vo.sh`) mendeteksi gugus clipping dan menggantinya
+  dengan versi low-pass yang diredam memakai transisi halus. Cek daftar "diperbaiki" yang
+  dicetaknya, lalu dengarkan bagian itu.

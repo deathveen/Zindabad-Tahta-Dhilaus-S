@@ -33,7 +33,7 @@ Lakukan ini paling awal, sebelum transkripsi, lalu pakai file hasilnya (bukan VO
 .claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo.wav   # default 1.2
 ```
 
-Penjernih: perbaiki bagian yang pecah (clipping), buang dengung rendah, kurangi desis, redam
+Penjernih: perbaiki bagian yang pecah atau "kresek" karena clipping (`declip.py`), buang dengung rendah, kurangi desis, redam
 "s" tajam, perjelas suara, ratakan volume, dan heningkan jeda. `atempo` hanya mengubah
 kecepatan, nada suara Vonya tetap (SOP Bagian 4, Tahap 2). `--mentah` sebagai argumen keempat
 melewati penjernih. Simpan
