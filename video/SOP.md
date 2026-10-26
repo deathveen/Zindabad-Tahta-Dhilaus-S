@@ -109,6 +109,7 @@ Pemilik konten mengirim:
 ### Tahap 2: Olah VO
 - Bersihkan dengung dan desis ruangan, redam bunyi "s" yang tajam, perjelas suara, dan ratakan volume.
 - **Jernihkan dan percepat VO menjadi 1,2×** sekaligus (`scripts/prep_vo.sh`; `atempo` menjaga nada).
+- **Potong jeda sunyi** yang lebih dari 0,45 detik menjadi 0,28 detik (otomatis di `prep_vo.sh`).
 - **Jangan ubah nada suara Vonya.**
 - Buang kalimat yang salah baca atau diulang (pemilik konten memberi tahu bagian mana).
 - Cocokkan teks naskah dengan suara: setiap kalimat mendapat waktu mulai dan selesai.
