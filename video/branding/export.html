@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="brand.js"></script>
+<script>
+// Ekspor aset logo final. Pakai: export.html#nama-aset (lihat ASSETS).
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+const ASSETS = {
+  // foto profil Instagram: persegi, IG memotongnya jadi lingkaran
+  'profil-B': [1080, 1080, () => { ctx.fillStyle = B.daun; ctx.fillRect(0, 0, 1080, 1080); iconB(540, 540, 540); }],
+  'logo-B': [1024, 1024, () => iconB(512, 512, 500)],
+  'logo-A': [1024, 1024, () => iconA(512, 512, 500)],
+  'logo-A-wordmark': [1400, 1000, () => { iconA(700, 330, 280); wordmark(700, 790, 120, { align: 'center' }); }],
+  'logo-C': [1600, 1000, () => {
+    ctx.fillStyle = B.daunGelap; ctx.beginPath(); ctx.roundRect(0, 0, 1600, 1000, 120); ctx.fill();
+    sunrise(800, 360, 110); sprout(800, 368, 2.2, '#8BD17C', '#8BD17C');
+    ctx.font = '700 190px FreeSerif'; ctx.fillStyle = B.fajar; ctx.textAlign = 'center'; ctx.fillText('فَائِدَة يَوْمِيَّة', 800, 680);
+    ctx.font = '700 90px Inter'; ctx.fillStyle = '#F6EBD5'; ctx.fillText('faedah harian', 800, 840);
+  }],
+  // watermark putih transparan untuk pojok video
+  'watermark': [900, 160, () => {
+    sprout(70, 135, 1.6, '#fff', '#fff');
+    ctx.font = '800 64px Inter'; ctx.fillStyle = '#fff'; ctx.textBaseline = 'alphabetic'; ctx.fillText('faedahharian.official', 150, 112);
+  }],
+};
+const [w, h, draw] = ASSETS[location.hash.slice(1)];
+cv.width = w; cv.height = h; draw();
+</script>
+</body></html>
