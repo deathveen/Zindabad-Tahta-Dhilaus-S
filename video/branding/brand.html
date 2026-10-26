@@ -1,0 +1,205 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#FBF5EA}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1920" height="3080"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script>
+// Lembar konsep visual akun "Faedah Harian".
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+const W = 1920, H = 3080;
+
+const B = {
+  daun: '#4E8B5F', daunGelap: '#234536', krem: '#FBF5EA', fajar: '#F2B544',
+  pink: '#F29BB8', ungu: '#B9A6E0', tinta: '#2A2233', abu: '#7A6A5C',
+};
+const PILAR = [
+  ['KAIDAH', '#3E8E8A', 'kunci', 'Yakin tidak hilang karena ragu'],
+  ['HUKUM', '#2F6B4F', 'timbangan', 'Bolehkah menegur makanan basi?'],
+  ['ADAB', '#E58FA8', 'hati', 'Adab makan: mulai dari kanan'],
+  ['KISAH', '#E3A33B', 'buku', 'Pemilik dua kebun yang lupa diri'],
+  ['PARENTING', '#9C88C8', 'keluarga', 'Memuji anak tanpa berlebihan'],
+];
+
+// ---------- elemen brand ----------
+function sprout(x, y, s, color = B.daun, leafColor) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-2, -22, 0, -38); ctx.stroke();
+  ctx.fillStyle = leafColor || color;
+  ctx.beginPath(); ctx.moveTo(0, -30); ctx.quadraticCurveTo(-34, -40, -36, -64); ctx.quadraticCurveTo(-8, -64, 0, -30); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0, -38); ctx.quadraticCurveTo(30, -50, 40, -78); ctx.quadraticCurveTo(8, -82, 0, -38); ctx.fill();
+  ctx.restore();
+}
+function sunrise(x, y, r, color = B.fajar) {
+  ctx.save(); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, Math.PI, 0); ctx.fill();
+  ctx.strokeStyle = color; ctx.lineWidth = r * .09; ctx.lineCap = 'round';
+  for (let i = 0; i < 7; i++) { const a = Math.PI + (i + .5) * Math.PI / 7; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r * 1.22, y + Math.sin(a) * r * 1.22); ctx.lineTo(x + Math.cos(a) * r * 1.45, y + Math.sin(a) * r * 1.45); ctx.stroke(); }
+  ctx.restore();
+}
+// Logo A: tunas tumbuh di depan matahari pagi
+function iconA(x, y, R, bg = B.krem) {
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, R, 0, 6.28); ctx.fillStyle = bg; ctx.fill(); ctx.clip();
+  sunrise(x, y + R * .28, R * .42);
+  ctx.fillStyle = B.daun; ctx.fillRect(x - R, y + R * .28, R * 2, R);
+  ctx.fillStyle = shade(B.daun, -.2); ctx.beginPath(); ctx.ellipse(x, y + R * .28, R * .5, R * .07, 0, 0, 6.28); ctx.fill();
+  sprout(x, y + R * .28, R / 70, B.daunGelap, '#7BC46F');
+  ctx.restore();
+}
+// Logo B: kepala Rifda dengan daun di kerudung
+function iconB(x, y, R, bg = B.daun) {
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, R, 0, 6.28); ctx.fillStyle = bg; ctx.fill(); ctx.clip();
+  ctx.fillStyle = shade(bg, .12); ctx.beginPath(); ctx.arc(x, y + R * 1.25, R * 1.05, 0, 6.28); ctx.fill();
+  const s = R / 62;
+  ctx.translate(x, y + R * .14); ctx.scale(s, s);
+  ctx.fillStyle = B.ungu; ctx.beginPath(); ctx.ellipse(0, 78, 62, 40, 0, Math.PI, 0); ctx.fill();
+  head(0, 0, 34, { wear: 'hijab', hijab: B.pink, mood: 1 });
+  sprout(10, -40, .55, '#2F6B4F', '#8BD17C');
+  ctx.restore();
+}
+function wordmark(x, y, size, opts = {}) {
+  ctx.save(); ctx.textAlign = opts.align || 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `900 ${size}px Inter`; ctx.fillStyle = opts.c1 || B.daunGelap; ctx.letterSpacing = `${-size * .02}px`;
+  ctx.fillText('faedah', x, y);
+  ctx.font = `600 ${size}px Inter`; ctx.fillStyle = opts.c2 || B.daun;
+  ctx.fillText('harian', x, y + size * .95);
+  ctx.restore();
+}
+function pillIcon(kind, x, y, s, color = '#fff') {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (kind === 'kunci') { ctx.beginPath(); ctx.arc(-6, 0, 7, 0, 6.28); ctx.stroke(); ctx.beginPath(); ctx.moveTo(1, 0); ctx.lineTo(13, 0); ctx.moveTo(9, 0); ctx.lineTo(9, 5); ctx.moveTo(13, 0); ctx.lineTo(13, 5); ctx.stroke(); }
+  if (kind === 'timbangan') { ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 10); ctx.moveTo(-7, 10); ctx.lineTo(7, 10); ctx.moveTo(-12, -6); ctx.lineTo(12, -6); ctx.stroke(); [-12, 12].forEach(px => { ctx.beginPath(); ctx.arc(px, 0, 5, 0, Math.PI); ctx.stroke(); }); }
+  if (kind === 'hati') { ctx.beginPath(); ctx.moveTo(0, 9); ctx.bezierCurveTo(-16, -2, -8, -14, 0, -6); ctx.bezierCurveTo(8, -14, 16, -2, 0, 9); ctx.fill(); }
+  if (kind === 'buku') { ctx.beginPath(); ctx.moveTo(0, -6); ctx.quadraticCurveTo(-8, -10, -14, -7); ctx.lineTo(-14, 8); ctx.quadraticCurveTo(-8, 5, 0, 9); ctx.quadraticCurveTo(8, 5, 14, 8); ctx.lineTo(14, -7); ctx.quadraticCurveTo(8, -10, 0, -6); ctx.lineTo(0, 9); ctx.stroke(); }
+  if (kind === 'keluarga') { ctx.beginPath(); ctx.arc(-6, -6, 5, 0, 6.28); ctx.arc(8, -1, 3.5, 0, 6.28); ctx.fill(); ctx.beginPath(); ctx.ellipse(-6, 8, 7, 6, 0, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.ellipse(8, 9, 5, 4.5, 0, Math.PI, 0); ctx.fill(); }
+  ctx.restore();
+}
+function pill(label, color, icon, x, y, s = 1) {
+  ctx.save(); ctx.font = `800 ${16 * s}px Inter`; ctx.letterSpacing = `${2 * s}px`;
+  const w = ctx.measureText(label).width + 62 * s;
+  ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(x, y, w, 38 * s, 19 * s); ctx.fill();
+  pillIcon(icon, x + 22 * s, y + 19 * s, s * .85);
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(label, x + 42 * s, y + 20 * s);
+  ctx.restore(); return w;
+}
+
+// ---------- tata letak ----------
+function txt(s, x, y, size, weight = 700, color = B.tinta, align = 'left', font = 'Inter') {
+  ctx.font = `${weight} ${size}px ${font}, sans-serif`; ctx.fillStyle = color; ctx.textAlign = align; ctx.fillText(s, x, y);
+}
+function wrap(s, x, y, maxW, size, weight, color, lh = 1.15, align = 'left') {
+  ctx.font = `${weight} ${size}px Inter`; const words = s.split(' '); let line = '', yy = y;
+  words.forEach(w => { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { txt(line, x, yy, size, weight, color, align); line = w; yy += size * lh; } else line = t; });
+  txt(line, x, yy, size, weight, color, align); return yy;
+}
+function card(x, y, w, h, bg = '#FFFFFF') {
+  ctx.save(); ctx.shadowColor = 'rgba(60,50,30,.10)'; ctx.shadowBlur = 26; ctx.shadowOffsetY = 6;
+  ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(x, y, w, h, 28); ctx.fill(); ctx.restore();
+}
+function section(n, title, sub, y) { txt(`${n} · ${title}`, 110, y, 34, 800); if (sub) txt(sub, 110, y + 42, 22, 500, B.abu); }
+function phone(x, y, w, h, draw) {
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
+  ctx.fillStyle = '#1b1b1f'; ctx.beginPath(); ctx.roundRect(x - 10, y - 10, w + 20, h + 20, 34); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, 26); ctx.clip(); ctx.translate(x, y); draw(w, h); ctx.restore();
+}
+
+ctx.fillStyle = B.krem; ctx.fillRect(0, 0, W, H);
+txt('KONSEP VISUAL AKUN', 80, 100, 22, 700, '#9A7B62');
+txt('Faedah Harian', 80, 168, 64, 900, B.daunGelap);
+txt('Bertumbuh lewat satu faedah setiap hari: tunas (bertumbuh) + fajar (harian) + Rifda (teman belajar).', 80, 214, 24, 500, B.abu);
+
+// 1. Logo
+card(60, 260, 1800, 640);
+section(1, 'Tiga alternatif logo', 'Pilih satu sebagai logo utama.', 330);
+// A
+iconA(330, 570, 120);
+wordmark(330, 770, 40, { align: 'center' });
+txt('A · Tunas Fajar', 330, 868, 22, 700, B.abu, 'center');
+// B
+iconB(920, 570, 120);
+wordmark(920, 770, 40, { align: 'center' });
+txt('B · Rifda + Tunas', 920, 868, 22, 700, B.abu, 'center');
+// C
+ctx.save(); ctx.fillStyle = B.daunGelap; ctx.beginPath(); ctx.roundRect(1330, 440, 400, 270, 40); ctx.fill(); ctx.restore();
+sunrise(1530, 545, 34);
+sprout(1530, 548, .7, '#8BD17C', '#8BD17C');
+txt('فَائِدَة يَوْمِيَّة', 1530, 640, 58, 700, B.fajar, 'center', 'FreeSerif');
+txt('faedah harian', 1530, 690, 28, 700, '#F6EBD5', 'center');
+txt('C · Sentuhan Arab', 1530, 868, 22, 700, B.abu, 'center');
+
+// 2. Palet
+card(60, 940, 1800, 400);
+section(2, 'Palet identitas', 'Hijau daun = bertumbuh, amber = fajar/harian, krem = latar hangat. Pink & ungu milik Rifda.', 1010);
+[['Daun', B.daun], ['Daun Gelap', B.daunGelap], ['Fajar', B.fajar], ['Krem', B.krem], ['Kerudung Rifda', B.pink], ['Jubah Rifda', B.ungu]].forEach(([n, c], i) => {
+  const x = 200 + i * 280;
+  ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, 1180, 62, 0, 6.28); ctx.fill();
+  if (c === B.krem) { ctx.strokeStyle = '#E3D6BE'; ctx.lineWidth = 3; ctx.stroke(); }
+  txt(n, x, 1282, 22, 700, B.tinta, 'center'); txt(c, x, 1310, 18, 500, B.abu, 'center');
+});
+
+// 3. Lima pilar
+card(60, 1380, 1800, 330);
+section(3, 'Lima pilar konten', 'Setiap topik punya warna & ikon; dipakai di cover, label kartu, dan transisi.', 1450);
+let px = 110; PILAR.forEach(([l, c, ic]) => { px += pill(l, c, ic, px, 1560, 1.35) + 30; });
+txt('Feed jadi rapi: penonton mengenali topik dari warnanya sebelum membaca judul.', 110, 1665, 22, 500, B.abu);
+
+// 4. Penerapan
+card(60, 1750, 1800, 1260);
+section(4, 'Penerapan', 'Cover Reels · watermark di video · kartu penutup · foto profil', 1820);
+const PW = 360, PH = 640, PY = 1920;
+// cover
+phone(140, PY, PW, PH, (w, h) => {
+  const [l, c, ic, title] = PILAR[2];
+  ctx.fillStyle = B.krem; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = shade(c, .78); ctx.beginPath(); ctx.arc(w * .8, h * .78, 220, 0, 6.28); ctx.fill();
+  iconA(44, 52, 22); txt('faedah harian', 74, 59, 17, 800, B.daunGelap);
+  pill(l, c, ic, 26, 150, 1);
+  wrap(title, 26, 240, w - 52, 40, 900, B.daunGelap, 1.1);
+  figure(w * .72, h - 40, 1.25, { pose: 'stand', arms: 'point', robe: B.ungu, wear: 'hijab', hijab: B.pink });
+  ctx.fillStyle = B.daun; ctx.fillRect(0, h - 10, w, 10);
+});
+txt('Cover Reels', 140 + PW / 2, PY + PH + 50, 22, 700, B.abu, 'center');
+// watermark di adegan
+phone(560 + 20, PY, PW, PH, (w, h) => {
+  const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#5B3F8C'); g.addColorStop(.55, '#E98A72'); g.addColorStop(.75, '#FFD39A'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#2E2440'; ctx.beginPath(); ctx.moveTo(0, h * .7); ctx.quadraticCurveTo(w / 2, h * .66, w, h * .7); ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+  figure(w * .5, h * .7, 1.1, { pose: 'stand', arms: 'fold', robe: '#F1EADB', wear: 'kopiah', beard: '#3A2A22', mood: .6 });
+  txt('Ini caption contoh.', w / 2, h * .8, 22, 800, '#fff', 'center');
+  ctx.save(); ctx.globalAlpha = .55; sprout(26, 50, .32, '#fff', '#fff'); txt('faedahharian', 42, 46, 15, 800, '#fff'); ctx.restore();
+});
+txt('Watermark (pojok kiri atas, 55%)', 580 + PW / 2, PY + PH + 50, 22, 700, B.abu, 'center');
+// kartu penutup
+phone(1000 + 40, PY, PW, PH, (w, h) => {
+  ctx.fillStyle = B.daunGelap; ctx.fillRect(0, 0, w, h);
+  const gy = 470;
+  sunrise(w / 2, gy, 110, 'rgba(242,181,68,.22)');
+  ctx.fillStyle = shade(B.daunGelap, .12); ctx.fillRect(0, gy, w, h);
+  figure(w / 2, gy + 4, 1.2, { pose: 'stand', arms: 'wave', robe: B.ungu, wear: 'hijab', hijab: B.pink });
+  iconA(w / 2, 70, 38);
+  txt('Follow', w / 2, 152, 24, 600, '#F6EBD5', 'center');
+  txt('@faedahharian', w / 2, 192, 34, 900, B.fajar, 'center');
+  txt('teman belajar & pengingat harianmu', w / 2, gy + 44, 17, 600, '#F6EBD5', 'center');
+  ctx.fillStyle = B.fajar; ctx.beginPath(); ctx.roundRect(w / 2 - 80, h - 92, 160, 42, 21); ctx.fill();
+  txt('+ Follow', w / 2, h - 64, 19, 800, B.daunGelap, 'center');
+});
+txt('Kartu penutup (Rifda)', 1040 + PW / 2, PY + PH + 50, 22, 700, B.abu, 'center');
+// foto profil
+const AX = 1640;
+iconA(AX, 2080, 110); txt('Profil · A', AX, 2225, 20, 700, B.abu, 'center');
+iconB(AX, 2420, 110); txt('Profil · B', AX, 2565, 20, 700, B.abu, 'center');
+[[1555, 60], [1680, 40], [1762, 24]].forEach(([x, r]) => iconB(x, 2700, r));
+txt('ukuran kecil di feed & komentar', AX, 2790, 18, 500, B.abu, 'center');
+
+// grid feed
+txt('Contoh feed (cover per pilar)', 140, 2690, 24, 800, B.tinta);
+PILAR.concat([PILAR[0]]).forEach(([l, c, ic, title], i) => {
+  const x = 140 + i * 228, y = 2720, w = 210, h = 260;
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.clip();
+  ctx.fillStyle = B.krem; ctx.fillRect(x, y, w, h); ctx.fillStyle = shade(c, .75); ctx.beginPath(); ctx.arc(x + w * .85, y + h * .85, 110, 0, 6.28); ctx.fill();
+  ctx.fillStyle = c; ctx.fillRect(x, y + h - 8, w, 8);
+  pill(l, c, ic, x + 12, y + 14, .62);
+  wrap(title, x + 12, y + 70, w - 24, 21, 900, B.daunGelap, 1.12);
+  ctx.restore();
+});
+</script>
+</body></html>
