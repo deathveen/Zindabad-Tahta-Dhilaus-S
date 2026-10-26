@@ -237,7 +237,7 @@ node video/karakter/shot.js video/karakter/sheet.html lembar.png
 **Bio:**
 ```
 🌿 Bertumbuh lewat satu faedah setiap hari
-📚 Bahas: Kaidah | Hukum | Adab | Kisah | Parenting
+📚 Bahas: Kaidah | Hukum | Adab | Kisah | Psikologi
 🤝 Follow untuk teman belajar & pengingat harianmu!
 ```
 
@@ -250,8 +250,8 @@ node video/karakter/shot.js video/karakter/sheet.html lembar.png
 | Fajar | `#F2B544` |
 | Krem | `#FBF5EA` |
 
-**Label pilar** (Kaidah, Hukum, Adab, Kisah, Parenting): kapsul hijau tua `#234536` dengan ikon
-putih (kunci, timbangan, hati, buku, keluarga). Warnanya netral dan sama untuk semua pilar.
+**Label pilar** (Kaidah, Hukum, Adab, Kisah, Psikologi): kapsul hijau tua `#234536` dengan ikon
+putih (kunci, timbangan, hati, buku, otak). Warnanya netral dan sama untuk semua pilar.
 
 **File sumber:** `branding/brand.js` (elemen brand), `branding/brand.html` (lembar konsep
 → `konsep-visual.png`), `branding/export.html` + `export.js` (ekspor logo:
