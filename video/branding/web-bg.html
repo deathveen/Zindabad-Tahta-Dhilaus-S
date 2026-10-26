@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#FBF5EA}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="brand.js"></script>
+<script>
+// Latar halaman link-in-bio Faedah Harian. Pakai: web-bg.html#hp-terang | #hp-gelap | #desktop-terang
+// Atas: cahaya fajar di belakang foto profil. Tengah: bersih untuk tombol link. Bawah: bukit & tunas.
+const VARIAN = {
+  'hp-terang': { w: 1080, h: 2340, gelap: false },
+  'hp-gelap': { w: 1080, h: 2340, gelap: true },
+  'desktop-terang': { w: 2560, h: 1440, gelap: false },
+};
+const v = VARIAN[location.hash.slice(1)] || VARIAN['hp-terang'];
+const cv = document.getElementById('c'); cv.width = v.w; cv.height = v.h; ctx = cv.getContext('2d');
+const W = v.w, H = v.h, u = Math.min(W, H) / 1080;   // satuan skala
+const wide = W > H;
+const P = v.gelap
+  ? { top: '#163A2C', mid: '#1D4A38', bot: '#234536', glow: 'rgba(242,181,68,.30)', hill: ['#2C5A44', '#2F6B4F', '#3E7F5A'], leaf: '#8BD17C', stem: '#BFE6B0', dot: 'rgba(242,181,68,.5)', motif: 'rgba(255,255,255,.05)' }
+  : { top: '#FDF8EE', mid: '#FBF1E0', bot: '#F7E3C4', glow: 'rgba(242,181,68,.38)', hill: ['#CFE3C6', '#A9CBA0', '#7DAE7A'], leaf: '#7BC46F', stem: '#2F6B4F', dot: 'rgba(242,181,68,.55)', motif: 'rgba(78,139,95,.07)' };
+let seed = 7; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+// gradien dasar
+const g = ctx.createLinearGradient(0, 0, 0, H);
+g.addColorStop(0, P.top); g.addColorStop(.55, P.mid); g.addColorStop(1, P.bot);
+ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+// cahaya fajar di belakang foto profil (sekitar 13% dari atas pada HP)
+const cx = W / 2, cy = wide ? H * .2 : H * .13;
+const glow = ctx.createRadialGradient(cx, cy, 10 * u, cx, cy, (wide ? 700 : 620) * u);
+glow.addColorStop(0, P.glow); glow.addColorStop(1, 'rgba(242,181,68,0)');
+ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+ctx.save(); ctx.globalAlpha = v.gelap ? .5 : .55;
+ctx.strokeStyle = P.dot; ctx.lineCap = 'round'; ctx.lineWidth = 7 * u;
+for (let i = 0; i < 14; i++) {
+  const a = i / 14 * Math.PI * 2;
+  ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 230 * u, cy + Math.sin(a) * 230 * u); ctx.lineTo(cx + Math.cos(a) * 290 * u, cy + Math.sin(a) * 290 * u); ctx.stroke();
+}
+ctx.restore();
+
+// motif daun samar di seluruh latar (menjauhi area tengah)
+function leafMotif(x, y, s, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+  ctx.strokeStyle = P.motif; ctx.lineWidth = 4; ctx.beginPath();
+  ctx.moveTo(0, 30); ctx.quadraticCurveTo(-26, 0, 0, -30); ctx.quadraticCurveTo(26, 0, 0, 30); ctx.moveTo(0, 30); ctx.lineTo(0, -24); ctx.stroke();
+  ctx.restore();
+}
+for (let i = 0; i < (wide ? 70 : 60); i++) {
+  const x = rnd() * W, y = rnd() * H * .85, dx = Math.abs(x - W / 2) / W;
+  if (!wide && dx < .3 && y > H * .2 && y < H * .78) continue;   // area tombol link tetap bersih
+  if (wide && dx < .22) continue;
+  leafMotif(x, y, (.8 + rnd() * .9) * u, rnd() * 6.28);
+}
+// kilau kecil
+for (let i = 0; i < 40; i++) {
+  const x = rnd() * W, y = rnd() * H * .7;
+  ctx.save(); ctx.globalAlpha = .25 + rnd() * .45; ctx.fillStyle = '#F2B544'; ctx.translate(x, y); ctx.rotate(.785);
+  const s = (4 + rnd() * 6) * u; ctx.fillRect(-s / 2, -s / 2, s, s); ctx.restore();
+}
+
+// bukit berlapis di bawah
+function hill(y, amp, f, p, color) {
+  ctx.beginPath(); ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 6) ctx.lineTo(x, y + Math.sin(x / u * f + p) * amp * u + Math.sin(x / u * f * 2.3 + p * 1.7) * amp * .35 * u);
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+}
+const hb = wide ? H * .8 : H * .88;
+hill(hb, 34, .004, 1.2, P.hill[0]);
+hill(hb + 45 * u, 26, .006, 3.1, P.hill[1]);
+hill(hb + 95 * u, 14, .009, .4, P.hill[2]);
+// tunas di bukit
+const sp = wide ? [[.06, 1.3], [.12, .8], [.88, 1.4], [.95, .9], [.3, .6], [.7, .65], [.5, .5]] : [[.1, 1.6], [.24, 1.0], [.78, 1.8], [.9, 1.1], [.5, .7]];
+sp.forEach(([fx, s]) => sprout(W * fx, hb + 70 * u, s * u, P.stem, P.leaf));
+</script>
+</body></html>
