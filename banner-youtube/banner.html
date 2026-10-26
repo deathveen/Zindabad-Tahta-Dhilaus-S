@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Banner YouTube — Faedah Harian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Fraunces:opsz,wght@9..144,600&family=Schibsted+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --kertas: #F4EFE6;
+    --tinta: #1F1B16;
+    --zaitun: #3E5641;
+    --emas: #B08D57;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 2560px; height: 1440px; background: var(--kertas); overflow: hidden; }
+
+  .kanvas { position: relative; width: 2560px; height: 1440px; }
+
+  /* Pola bintang segi delapan memenuhi seluruh kanvas (terlihat penuh di TV) */
+  .pola { position: absolute; inset: 0; }
+
+  /* Pita tengah: area yang terlihat di desktop (2560 x 423) */
+  .pita {
+    position: absolute; left: 0; right: 0; top: 508px; height: 423px;
+    background: linear-gradient(90deg,
+      rgba(244,239,230,0) 0%,
+      rgba(244,239,230,.92) 18%,
+      var(--kertas) 30%, var(--kertas) 70%,
+      rgba(244,239,230,.92) 82%,
+      rgba(244,239,230,0) 100%);
+  }
+  .garis { position: absolute; left: 0; right: 0; height: 2px; background: var(--emas); opacity: .55; }
+  .garis.atas { top: 520px; } .garis.bawah { top: 917px; }
+
+  /* Konten utama — di dalam safe area 1546 x 423 */
+  .isi {
+    position: absolute; left: 507px; top: 508px; width: 1546px; height: 423px;
+    display: flex; align-items: center; justify-content: center; gap: 72px;
+  }
+  .lambang { width: 300px; height: 300px; flex: none; }
+  .pemisah { width: 2px; height: 250px; background: var(--emas); opacity: .6; flex: none; }
+  .teks { display: flex; flex-direction: column; align-items: flex-start; }
+  .arab {
+    font-family: 'Amiri', serif; font-weight: 700; font-size: 58px; line-height: 1.1;
+    color: var(--zaitun); direction: rtl;
+  }
+  .judul {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 150px; line-height: 1;
+    letter-spacing: -2px; color: var(--tinta); margin-top: 6px;
+  }
+  .tagline {
+    font-family: 'Schibsted Grotesk', sans-serif; font-size: 36px; color: var(--tinta);
+    opacity: .82; margin-top: 22px;
+  }
+  .pilar {
+    font-family: 'Schibsted Grotesk', sans-serif; font-weight: 600; font-size: 23px;
+    letter-spacing: 4px; text-transform: uppercase; color: var(--emas); margin-top: 22px;
+  }
+  .pilar span { color: var(--zaitun); opacity: .5; padding: 0 10px; }
+
+  /* Panduan safe area (hanya untuk pratinjau: tambahkan ?panduan) */
+  .panduan { display: none; position: absolute; border: 4px dashed; pointer-events: none; font: 600 26px sans-serif; padding: 8px; }
+  body.tampil-panduan .panduan { display: block; }
+  .p-tv { inset: 0; border-color: #8E3B2E; color: #8E3B2E; }
+  .p-tablet { left: 352px; top: 508px; width: 1855px; height: 423px; border-color: #2F4A6D; color: #2F4A6D; }
+  .p-desktop { left: 0; top: 508px; width: 2560px; height: 423px; border-color: #4B3B5C; color: #4B3B5C; text-align: right; }
+  .p-aman { left: 507px; top: 508px; width: 1546px; height: 423px; border-color: #2E6B6B; color: #2E6B6B; }
+</style>
+</head>
+<body>
+<div class="kanvas">
+  <svg class="pola" width="2560" height="1440" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Ubin 160px: bintang segi delapan (dua persegi bertumpuk) + penghubung -->
+      <pattern id="ubin" width="160" height="160" patternUnits="userSpaceOnUse">
+        <g fill="none" stroke="#B08D57" stroke-width="2">
+          <rect x="45" y="45" width="70" height="70"/>
+          <rect x="45" y="45" width="70" height="70" transform="rotate(45 80 80)"/>
+          <circle cx="80" cy="80" r="14"/>
+          <path d="M0 0 L30.5 30.5 M160 0 L129.5 30.5 M0 160 L30.5 129.5 M160 160 L129.5 129.5"/>
+          <path d="M80 0 V30.5 M80 160 V129.5 M0 80 H30.5 M160 80 H129.5" stroke-dasharray="4 6"/>
+        </g>
+      </pattern>
+      <radialGradient id="pudar" cx="50%" cy="50%" r="62%">
+        <stop offset="0" stop-color="#fff" stop-opacity=".25"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+      </radialGradient>
+      <mask id="topeng"><rect width="2560" height="1440" fill="url(#pudar)"/></mask>
+    </defs>
+    <rect width="2560" height="1440" fill="url(#ubin)" opacity=".42" mask="url(#topeng)"/>
+  </svg>
+
+  <div class="pita"></div>
+  <div class="garis atas"></div>
+  <div class="garis bawah"></div>
+
+  <div class="isi">
+    <svg class="lambang" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(150 150)">
+        <rect x="-118" y="-118" width="236" height="236" fill="#3E5641"/>
+        <rect x="-118" y="-118" width="236" height="236" fill="#3E5641" transform="rotate(45)"/>
+        <rect x="-104" y="-104" width="208" height="208" fill="none" stroke="#B08D57" stroke-width="3"/>
+        <rect x="-104" y="-104" width="208" height="208" fill="none" stroke="#B08D57" stroke-width="3" transform="rotate(45)"/>
+        <circle r="84" fill="none" stroke="#B08D57" stroke-width="1.5" opacity=".7"/>
+        <text x="0" y="40" text-anchor="middle" font-family="Amiri, serif" font-weight="700" font-size="150" fill="#F4EFE6">ف</text>
+      </g>
+    </svg>
+    <div class="pemisah"></div>
+    <div class="teks">
+      <div class="arab">فَائِدَةٌ كُلَّ يَوْمٍ</div>
+      <div class="judul">Faedah Harian</div>
+      <div class="tagline">Satu faedah sehari, langsung dari kitab yang dikaji.</div>
+      <div class="pilar">Hadits<span>·</span>Bahasa Arab<span>·</span>Tajwid<span>·</span>Fiqih<span>·</span>Tauhid<span>·</span>Adab<span>·</span>Sirah</div>
+    </div>
+  </div>
+
+  <div class="panduan p-tv">TV 2560×1440</div>
+  <div class="panduan p-desktop">Desktop 2560×423</div>
+  <div class="panduan p-tablet">Tablet 1855×423</div>
+  <div class="panduan p-aman">Aman di semua perangkat 1546×423</div>
+</div>
+<script>
+  if (location.search.includes('panduan')) document.body.classList.add('tampil-panduan');
+</script>
+</body>
+</html>
