@@ -24,6 +24,19 @@ Contoh lengkap yang sudah disetujui pemilik akun: `video/ep02/` ("3 Kunci, 1 Pin
 Kerjakan berurutan. Ada **dua titik persetujuan** (Tahap 3 dan 7): di titik itu berhenti dan
 tunggu jawaban pemilik akun, karena revisi setelah render penuh jauh lebih mahal.
 
+### Tahap 0: Percepat VO 1,2×
+
+Pemilik akun ingin tempo VO **1,2×** untuk semua episode. Lakukan ini paling awal, sebelum
+transkripsi, lalu pakai file hasilnya (bukan VO asli) di semua tahap berikutnya:
+
+```bash
+.claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo.wav   # default 1.2
+```
+
+`atempo` hanya mengubah kecepatan, nada suara Vonya tetap (SOP Bagian 4, Tahap 2). Simpan
+`vo.wav` di scratchpad, jangan di repo. Kalau pemilik akun minta kecepatan lain, isi argumen
+ketiga (misalnya `1.0` untuk tempo asli).
+
 ### Tahap 1: Dengarkan VO (lewat transkripsi)
 
 Claude tidak bisa mendengar audio. **Jangan pernah menyimpulkan isi audio dari analisis
