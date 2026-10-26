@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#FBF5EA}canvas{display:block}</style></head><body>
+<canvas id="c" width="1640" height="624"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="brand.js"></script>
+<script>
+// Sampul Facebook 1640×624. Desktop menampilkan seluruh lebar; HP memotong sisi kiri-kanan
+// (area aman ±1110 px di tengah). Foto profil menutupi pojok kiri bawah di desktop.
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+const W = 1640, H = 624, SAFE_L = 265, SAFE_R = 1375;
+const guides = /guides/.test(location.hash);
+
+// langit pagi
+const g = ctx.createLinearGradient(0, 0, 0, H);
+g.addColorStop(0, '#FDF8EE'); g.addColorStop(.6, '#FBEBD0'); g.addColorStop(1, '#F7DDB4');
+ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+// matahari pagi di belakang Rifda
+const sx = 1150, sy = 470;
+const glow = ctx.createRadialGradient(sx, sy, 40, sx, sy, 420);
+glow.addColorStop(0, 'rgba(242,181,68,.45)'); glow.addColorStop(1, 'rgba(242,181,68,0)');
+ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+sunrise(sx, sy, 150, 'rgba(242,181,68,.9)');
+
+// bukit berlapis
+function hill(y, amp, f, p, color) {
+  ctx.beginPath(); ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 8) ctx.lineTo(x, y + Math.sin(x * f + p) * amp + Math.sin(x * f * 2.3 + p * 1.7) * amp * .35);
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+}
+hill(470, 22, .004, 1.2, '#A9CBA0');
+hill(505, 16, .006, 3.1, '#7DAE7A');
+hill(548, 8, .009, .4, B.daun);
+
+// tunas-tunas kecil di bukit (dekorasi di luar area aman pun boleh)
+[[90, 552, .9], [190, 548, .6], [1480, 549, 1.0], [1570, 552, .65], [700, 546, .5], [880, 549, .45]].forEach(([x, y, s]) => sprout(x, y, s, B.daunGelap, '#8BD17C'));
+// kilau kecil
+const r = (() => { let s = 5; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); })();
+for (let i = 0; i < 26; i++) {
+  const x = r() * W, y = 40 + r() * 300, a = .25 + r() * .4;
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = B.fajar; ctx.translate(x, y); ctx.rotate(.785);
+  ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+}
+
+// teks
+ctx.textBaseline = 'alphabetic';
+ctx.font = '700 22px Inter'; ctx.letterSpacing = '5px'; ctx.fillStyle = '#9A7B62';
+ctx.fillText('ILMU ISLAM SEHARI-HARI', 300, 150); ctx.letterSpacing = '0px';
+ctx.font = '900 96px Inter'; ctx.fillStyle = B.daunGelap; ctx.letterSpacing = '-2px';
+ctx.fillText('Faedah Harian', 294, 245); ctx.letterSpacing = '0px';
+ctx.font = '500 30px Inter'; ctx.fillStyle = '#5E5246';
+ctx.fillText('Bertumbuh lewat satu faedah setiap hari', 300, 298);
+let px = 300;
+[['KAIDAH', 'kunci'], ['HUKUM', 'timbangan'], ['ADAB', 'hati'], ['KISAH', 'buku'], ['PARENTING', 'keluarga']].forEach(([l, ic]) => { px += pill(l, B.daunGelap, ic, px, 330, 1.05) + 12; });
+
+// Rifda menyapa
+figure(1150, 548, 1.75, { pose: 'stand', arms: 'wave', robe: B.ungu, wear: 'hijab', hijab: B.pink });
+// gelembung sapaan
+ctx.save(); ctx.fillStyle = '#FFFFFF'; ctx.shadowColor = 'rgba(80,50,30,.12)'; ctx.shadowBlur = 16;
+ctx.beginPath(); ctx.roundRect(985, 118, 205, 62, 31); ctx.fill();
+ctx.beginPath(); ctx.moveTo(1120, 172); ctx.lineTo(1142, 210); ctx.lineTo(1150, 168); ctx.fill(); ctx.restore();
+ctx.font = '800 26px Inter'; ctx.fillStyle = B.daunGelap; ctx.textAlign = 'center'; ctx.fillText('Yuk, belajar!', 1087, 158);
+
+// handle di kanan bawah (terlihat di desktop & HP)
+ctx.textAlign = 'right'; ctx.font = '800 24px Inter'; ctx.fillStyle = '#FFFFFF';
+ctx.fillText('@faedahharian.official', SAFE_R - 24, 602);
+ctx.textAlign = 'left';
+
+if (guides) {
+  ctx.strokeStyle = 'rgba(220,40,40,.8)'; ctx.lineWidth = 3; ctx.setLineDash([12, 8]);
+  ctx.strokeRect(SAFE_L, 2, SAFE_R - SAFE_L, H - 4);
+  ctx.fillStyle = 'rgba(40,40,60,.35)'; ctx.beginPath(); ctx.arc(150, 560, 170, 0, 6.28); ctx.fill();
+  ctx.setLineDash([]); ctx.font = '700 20px Inter'; ctx.fillStyle = 'rgba(220,40,40,.9)';
+  ctx.fillText('area aman HP', SAFE_L + 10, 28); ctx.fillStyle = '#fff'; ctx.fillText('foto profil (desktop)', 60, 560);
+}
+</script>
+</body></html>
