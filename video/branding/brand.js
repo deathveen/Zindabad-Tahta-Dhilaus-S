@@ -56,6 +56,10 @@ function pillIcon(kind, x, y, s, color = '#fff') {
   if (kind === 'timbangan') { ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 10); ctx.moveTo(-7, 10); ctx.lineTo(7, 10); ctx.moveTo(-12, -6); ctx.lineTo(12, -6); ctx.stroke(); [-12, 12].forEach(px => { ctx.beginPath(); ctx.arc(px, 0, 5, 0, Math.PI); ctx.stroke(); }); }
   if (kind === 'hati') { ctx.beginPath(); ctx.moveTo(0, 9); ctx.bezierCurveTo(-16, -2, -8, -14, 0, -6); ctx.bezierCurveTo(8, -14, 16, -2, 0, 9); ctx.fill(); }
   if (kind === 'buku') { ctx.beginPath(); ctx.moveTo(0, -6); ctx.quadraticCurveTo(-8, -10, -14, -7); ctx.lineTo(-14, 8); ctx.quadraticCurveTo(-8, 5, 0, 9); ctx.quadraticCurveTo(8, 5, 14, 8); ctx.lineTo(14, -7); ctx.quadraticCurveTo(8, -10, 0, -6); ctx.lineTo(0, 9); ctx.stroke(); }
+  if (kind === 'otak') {
+    [-1, 1].forEach(d => { ctx.beginPath(); ctx.ellipse(d * 5, 0, 7.5, 9, 0, 0, 6.28); ctx.stroke(); });
+    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 9); ctx.moveTo(-9, -1); ctx.quadraticCurveTo(-6, 2, -3, -1); ctx.moveTo(3, 2); ctx.quadraticCurveTo(6, -1, 9, 2); ctx.stroke();
+  }
   if (kind === 'keluarga') { ctx.beginPath(); ctx.arc(-6, -6, 5, 0, 6.28); ctx.arc(8, -1, 3.5, 0, 6.28); ctx.fill(); ctx.beginPath(); ctx.ellipse(-6, 8, 7, 6, 0, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.ellipse(8, 9, 5, 4.5, 0, Math.PI, 0); ctx.fill(); }
   ctx.restore();
 }
