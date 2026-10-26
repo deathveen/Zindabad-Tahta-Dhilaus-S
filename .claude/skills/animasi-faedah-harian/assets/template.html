@@ -1,0 +1,62 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="../branding/brand.js"></script>
+<script src="vo_env.js"></script>
+<script>
+// Faedah Harian · __JUDUL__
+// Waktu animasi = waktu VO (detik). Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+const W = 720, H = 1280, SS = 1.5;
+const VO_END = __VO_END__, DURATION = VO_END + 3.6;   // +3,6 detik untuk kartu follow
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+let NT = 0;
+</script>
+<script src="../engine/lib.js"></script>
+<script>
+// ---------- naskah: [mulai, selesai, 'teks *kata kunci*'] mengikuti VO ----------
+const CAPTIONS = __CAPTIONS__;
+
+// ---------- adegan ----------
+// Ganti adegan contoh ini dengan adegan dari storyboard. Lihat ../ep02/render.html sebagai contoh lengkap.
+function S_hook(T) {
+  sky([[0, '#0B1030'], [.6, '#1E2452'], [1, '#2A2350']]);
+  twinkle(T, 1);
+  hills([{ y: 900, a: 10, f: .008, p: 1, c: '#161838' }], T);
+  headline('__JUDUL_KECIL__', ['__JUDUL_BESAR__'], T, .4, 0, { y: 190, size: 64 });
+  const rin = easeOut(prog(T, .4, 1.2));
+  drawRifda(lerp(-140, 200, rin), 905, 1.1, { arms: T > 1 && T < 2.4 ? 'wave' : 'point', talk: talkVO(T), label: prog(T, 1, 1.4), look: .5 });
+}
+function S_isi(T) {
+  sky([[0, '#FFF4DA'], [1, '#EFC98C']]);
+  hills([{ y: 884, a: 6, f: .01, p: 4, c: '#4E8B5F' }], T);
+  ctx.fillStyle = '#2F6247'; ctx.fillRect(0, 900, W, H);
+  drawDafa(360, 882, .95, { t: T, mood: .6, arms: 'fold' });
+}
+const SCENES = [[0, S_hook], [__CUT_ISI__, S_isi], [VO_END, S_outro]];
+
+// efek suara (detik video) untuk audio.py; tipe yang tersedia ada di references/engine.md
+function sfxEvents() {
+  const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
+  add(.3, 'title'); add(.5, 'whoosh_soft');
+  SCENES.slice(1).forEach(([c]) => add(c - .6, 'whoosh'));
+  add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
+  return ev.sort((a, b) => a.t - b.t);
+}
+// cover Reels (gambar diam untuk grid profil)
+function drawCover() {
+  NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  sky([[0, '#0B1030'], [.6, '#1E2452'], [1, '#2A2350']]); twinkle(3, 1);
+  hills([{ y: 900, a: 10, f: .008, p: 1, c: '#161838' }], 3);
+  drawRifda(170, 1050, 1.15, { arms: 'point', look: .6, mood: 1 });
+  const g = ctx.createLinearGradient(0, 0, 0, 560); g.addColorStop(0, 'rgba(11,16,48,.95)'); g.addColorStop(1, 'rgba(11,16,48,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, 560);
+  iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18; ctx.font = '900 92px Inter'; ctx.fillStyle = AMBER;
+  ctx.fillText('__JUDUL_BESAR__', 40, 250); ctx.shadowBlur = 0;
+}
+exportEpisode();
+</script>
+</body></html>

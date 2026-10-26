@@ -1,0 +1,145 @@
+---
+name: animasi-faedah-harian
+description: Membuat video animasi Reels/TikTok vertikal (1080×1920) untuk akun Instagram Faedah Harian (@faedahharian.official) dari VO dan naskah. Mencakup transkripsi VO, verifikasi dalil, storyboard, animasi karakter gaya B (Dafa, Rifda si narator berkerudung pink), caption sinkron dengan suara, musik instrumental + SFX, kartu follow, dan cover Reels. Gunakan skill ini setiap kali pengguna mengirim VO/rekaman suara/audio Reels untuk dijadikan video, minta "buat animasi", "bikin reels", "video faedah harian", episode baru, atau revisi episode yang sudah ada di folder video/, meskipun tidak menyebut nama skill ini.
+---
+
+# Animasi Faedah Harian
+
+Skill ini mengubah **VO** (biasanya suara Vonya) menjadi video animasi siap unggah untuk akun
+**Faedah Harian · Ilmu Islam Sehari-hari**. Semua keputusan gaya, karakter, adab, dan branding
+sudah tercatat di `video/SOP.md`. Baca SOP itu sekali di awal sesi, karena itu yang membuat
+video konsisten sebagai satu seri.
+
+Contoh lengkap yang sudah disetujui pemilik akun: `video/ep02/` ("3 Kunci, 1 Pintu"). Jadikan
+`video/ep02/render.html` rujukan utama untuk pola adegan, dan **jangan diubah**.
+
+## Bahan yang dibutuhkan
+
+- **File VO** (mp3/m4a/wav/WhatsApp, apa pun).
+- **Teks naskah** bila ada. Kalau tidak ada, transkripsi sendiri (Tahap 1).
+- **Musik** opsional. Tanpa file musik, pakai musik instrumental buatan `audio.py` (`pad`).
+
+## Alur kerja
+
+Kerjakan berurutan. Ada **dua titik persetujuan** (Tahap 3 dan 7): di titik itu berhenti dan
+tunggu jawaban pemilik akun, karena revisi setelah render penuh jauh lebih mahal.
+
+### Tahap 1: Dengarkan VO (lewat transkripsi)
+
+Claude tidak bisa mendengar audio. **Jangan pernah menyimpulkan isi audio dari analisis
+ketukan atau volume saja.** Pernah terjadi: sebuah VO dikira musik instrumental, lalu
+animasinya tidak nyambung sama sekali dengan isinya. Selalu transkripsi dulu:
+
+```bash
+python3 -I .claude/skills/animasi-faedah-harian/scripts/transcribe.py vo.mp3 transkrip.json
+```
+
+- Unduhan model Whisper medium sekitar 1,9 GB, sekali saja, dari GitHub (tembus jaringan cloud).
+- Transkripsi berjalan sekitar 3 menit untuk VO 90 detik.
+- Hasilnya per frasa (2–5,5 detik) beserta waktunya. Inilah dasar timing caption.
+- VO bisa campur bahasa Inggris. Bagian berbahasa Inggris diterjemahkan di caption.
+- Bagian yang transkripsinya kacau: rapikan sesuai makna dan **sebutkan detiknya ke pemilik
+  akun** saat menyerahkan hasil.
+
+### Tahap 2: Pahami isi dan cek dalil
+
+- Petakan struktur VO: pembuka, poin-poin, dalil, penutup.
+- Setiap ayat atau hadis yang disebut: teks Arab dan terjemahan diambil dari sumber
+  terverifikasi (terjemahan Kemenag untuk ayat; untuk hadis cantumkan perawi, nomor, dan status).
+  Kalau ragu, tanya.
+- Klaim yang tidak berdalil (misalnya angka amalan): **sampaikan ke pemilik akun**. Pemilik akun
+  pernah memutuskan amalan pribadi tetap ditampilkan apa adanya tanpa kartu koreksi. Ikuti
+  keputusannya, tapi jangan pernah melabelinya sebagai hadis.
+- Aturan adab (SOP Bagian 3): Nabi dan malaikat tidak digambar; sahabat atau orang saleh
+  terdahulu digambar sebagai siluet; Allah tidak divisualkan (cukup cahaya, teks, atau sudut pandang).
+
+### Tahap 3: Storyboard (persetujuan #1)
+
+Usulkan **satu perumpamaan visual utama** yang mengikat seluruh video (contoh: 3 gembok di
+satu pintu; toples bintang dan satu batu). Lalu buat tabel adegan:
+`waktu VO | isi VO | visual | kapan Rifda muncul`, beserta catatan dalil dari Tahap 2.
+Tunggu persetujuan.
+
+Pedoman:
+- Rifda muncul di pembuka, saat dalil diperkenalkan (pose `chest`), saat ada penjelasan, dan
+  di kartu follow. Ia tidak muncul di tengah adegan kisah.
+- Palet warna mengikuti isi (malam = biru tua, bersih/ampunan = toska ke terang, takwa = krem
+  dan cahaya). Pilar konten tidak punya warna tetap.
+- Label pilar hanya dipasang kalau pemilik akun memintanya.
+
+### Tahap 4: Kerangka episode
+
+```bash
+python3 -I .claude/skills/animasi-faedah-harian/scripts/new_episode.py video ep03 vo.mp3 \
+  --judul "Judul Pendek" --kecil "Teks Kecil di Atas" --transkrip transkrip.json
+```
+
+Skrip ini membuat `video/ep03/`:
+- `render.html`: adegan contoh, caption mentah dari transkrip, dan kartu follow.
+- `vo_env.js`: amplop suara untuk gerak mulut Rifda.
+- `cover.js`
+
+VO **tidak** disalin ke repo.
+
+### Tahap 5: Tulis adegan
+
+Di `video/epNN/render.html`:
+
+1. **Rapikan `CAPTIONS`**: maksimal sekitar 2 baris per caption (pecah frasa panjang), kata
+   kunci ditulis `*seperti ini*`, waktu mengikuti transkrip.
+2. **Tulis fungsi adegan** `S_nama(T)` dan susun `SCENES = [[detikMulai, fungsi], ...]`.
+   Batas adegan diletakkan di jeda kalimat VO; transisi zoom-blur terjadi otomatis.
+3. **Pakai bagian siap pakai** dari mesin (`video/engine/lib.js`): Dafa, Rifda, `dalilCard`,
+   `rays`, `sajadah`, `rifdaCorner`, `headline`, `S_outro`, dan lainnya. Daftar lengkap dan
+   contohnya ada di `references/engine.md`. HUD yang menetap di atas semua adegan masuk ke
+   `drawOverlay(T)`.
+4. **Isi `sfxEvents()`** di momen penting saja. Jangan memberi SFX di setiap gerakan.
+5. **Buat `drawCover()`** yang khusus untuk episode ini: judul besar, subjudul, perumpamaan
+   utama, dan Rifda.
+
+Sebelum menulis, baca `references/pelajaran.md`. Isinya kesalahan yang sudah pernah terjadi
+(bentrok nama variabel, label yang menabrak caption, dan sebagainya).
+
+### Tahap 6: Cek frame
+
+```bash
+cd video && RENDER_HTML=epNN/render.html node preview.js /tmp/cek 1.5 8 20 ...
+```
+
+Ambil satu atau dua frame per adegan, plus di tengah transisi. Gabungkan jadi satu lembar
+(`ffmpeg ... hstack`) lalu lihat. Periksa:
+- teks tidak keluar layar dan tidak bertumpuk,
+- caption tidak tertutup Rifda atau labelnya,
+- konten penting berada di area aman 9:16 (atas sekitar 120 px, bawah sekitar 250 px),
+- teks Arab terbaca dan harakatnya benar.
+
+Perbaiki dulu sebelum render penuh.
+
+### Tahap 7: Render final (persetujuan #2)
+
+```bash
+.claude/skills/animasi-faedah-harian/scripts/finalize.sh "$PWD/video" epNN vo.mp3 \
+  "$PWD/video/epNN/<judul>.mp4" [musik.mp3|pad]
+```
+
+- Render 4 proses paralel memakan sekitar 2–3 menit. Jalankan sebagai proses latar belakang
+  (`run_in_background`).
+- Hasilnya: MP4 (-14 LUFS), `cover.png`, dan contact sheet. Lihat contact sheet-nya dulu.
+- Kirim MP4 dan cover ke pemilik akun lewat `SendUserFile`.
+- Serahkan dengan **tabel alur** (waktu, isi VO, visual), catatan caption yang tidak yakin
+  (sebutkan detiknya), dan catatan dalil.
+- Tunggu penilaian dan kerjakan revisinya.
+
+### Tahap 8: Simpan
+
+- Commit dan push ke branch kerja.
+- Setelah pemilik akun bilang **fix**, masukkan ke `main` lewat pull request lalu merge
+  (pemilik akun ingin semuanya ada di `main`).
+- File VO dan musik dari luar tidak di-commit.
+
+## Rujukan
+
+- `video/SOP.md`: semua keputusan gaya, karakter, adab, palet, branding, dan checklist QC.
+- `references/engine.md`: API mesin, karakter, pose, tipe SFX, dan pola adegan.
+- `references/pelajaran.md`: kesalahan yang pernah terjadi dan cara menghindarinya.
+- `video/ep02/render.html`: contoh episode lengkap yang disetujui.

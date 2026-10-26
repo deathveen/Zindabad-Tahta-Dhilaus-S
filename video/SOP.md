@@ -259,6 +259,13 @@ putih (kunci, timbangan, hati, buku, otak). Warnanya netral dan sama untuk semua
 
 ---
 
-## 10. Belum diputuskan
+## 10. Skill otomatis
 
-- [ ] Skill otomatis (`.claude/skills/animasi-reels/`)
+Alur di dokumen ini sudah dijadikan skill **`animasi-faedah-harian`**
+(`.claude/skills/animasi-faedah-harian/`). Kirim VO (dan naskah bila ada), lalu skill
+menjalankan: transkripsi → cek dalil → storyboard (persetujuan) → kerangka episode → adegan →
+cek frame → render final (persetujuan) → simpan ke `main`.
+
+- Transkripsi VO kini bisa dilakukan di cloud (Whisper medium dari GitHub Releases), jadi teks
+  naskah tidak lagi wajib, tapi tetap disarankan untuk istilah Arab.
+- Mesin bersama: `video/engine/lib.js`. Contoh episode yang disetujui: `video/ep02/`.

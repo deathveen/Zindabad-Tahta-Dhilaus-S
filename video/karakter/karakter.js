@@ -29,7 +29,12 @@ function face(hx, hy, r, o = {}) {
   (side ? [hx + r * .3] : [hx - 19 + look * 4, hx + 19 + look * 4]).forEach(cx => { ctx.beginPath(); ctx.ellipse(cx, hy + 11, 6, 3.5, 0, 0, 6.28); ctx.fill(); });
   const mx = side ? hx + r * .55 : hx + look * 5, m = o.mood ?? 1;
   ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(mx - 6, hy + 13); ctx.quadraticCurveTo(mx, hy + 13 + m * 6, mx + 6, hy + 13); ctx.stroke();
+  if (o.talk > .05) { // mulut terbuka saat bicara (0..1)
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.ellipse(mx, hy + 15, 5.5, 1.5 + o.talk * 5, 0, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#E86F7E'; ctx.beginPath(); ctx.ellipse(mx, hy + 15 + o.talk * 2.5, 3.5, o.talk * 2, 0, 0, 6.28); ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.moveTo(mx - 6, hy + 13); ctx.quadraticCurveTo(mx, hy + 13 + m * 6, mx + 6, hy + 13); ctx.stroke();
+  }
   if (o.beard) { ctx.fillStyle = shade(o.beard, 0); ctx.beginPath(); ctx.ellipse(side ? hx + r * .35 : hx + look * 4, hy + r * .78, side ? 12 : 16, 9, 0, 0, 6.28); ctx.fill(); }
 }
 function head(hx, hy, r, o) {
@@ -134,6 +139,11 @@ function figure(x, y, s, o) {
     if (arms === 'fold') { sleeve(-28, -86, -6, -62, robe, SKIN, { sil }); sleeve(28, -86, 6, -64, robe, SKIN, { sil }); }
     if (arms === 'point') { sleeve(-28, -86, -38, -44, robe, SKIN, { sil }); sleeve(28, -86, 66, -118, robe, SKIN, { sil, point: [9, -9] }); }
     if (arms === 'wave') { sleeve(-28, -86, -38, -44, robe, SKIN, { sil }); sleeve(28, -86, 50, -142, robe, SKIN, { sil }); if (!sil) { ctx.strokeStyle = INK; ctx.globalAlpha = .4; ctx.lineWidth = 2.5; [[64, -150], [68, -138]].forEach(([a, b]) => { ctx.beginPath(); ctx.arc(a - 6, b, 8, -.7, .7); ctx.stroke(); }); ctx.globalAlpha = 1; } }
+    if (arms === 'chest') { sleeve(-28, -86, -38, -44, robe, SKIN, { sil }); sleeve(28, -86, 2, -66, robe, SKIN, { sil }); }
+    if (arms === 'lift') { // o.up 0..1: dari tangan turun ke sorak (o.target 'cheer') atau memegang di depan dada ('hold')
+      const tg = o.target === 'hold' ? [16, -66] : [54, -138], u = o.up ?? 1;
+      [-1, 1].forEach(sd => sleeve(sd * 28, -86, sd * (38 + (tg[0] - 38) * u), -44 + (tg[1] + 44) * u, robe, SKIN, { sil }));
+    }
     if (arms === 'spear') { sleeve(28, -86, 40, -50, robe, SKIN, { sil }); ctx.strokeStyle = fill('#6B4A2F'); ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(42, 4); ctx.lineTo(42, -190); ctx.stroke(); ctx.fillStyle = fill('#B9C0C9'); ctx.beginPath(); ctx.moveTo(35, -186); ctx.lineTo(42, -214); ctx.lineTo(49, -186); ctx.fill(); ctx.fillStyle = fill(SKIN); ctx.beginPath(); ctx.arc(41, -52, 8, 0, 6.28); ctx.fill(); }
     if (arms === 'basket') {
       sleeve(-28, -86, -38, -44, robe, SKIN, { sil }); sleeve(28, -86, 46, -56, robe, SKIN, { sil });

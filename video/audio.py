@@ -2,10 +2,12 @@
 
 Pemakaian:
   node dump_events.js render.html events.json
-  python3 audio.py events.json musik.mp3 out.wav
+  python3 audio.py events.json musik.mp3 out.wav            # musik dari file
+  python3 audio.py events.json pad out.wav vo.mp3           # VO + musik instrumental buatan sendiri
 
-Musik diberi efek "teredam" (low-pass) saat suasana sedih dan ducking saat batu
-menghantam; SFX disintesis sendiri tanpa sampel eksternal.
+Dengan VO: suara dibersihkan ringan (tanpa mengubah nada) dan musik otomatis mengecil
+saat VO berbicara. Tanpa VO: musik diberi efek "teredam" dan ducking sesuai penanda
+di render.html. SFX disintesis sendiri tanpa sampel eksternal.
 """
 import json
 import subprocess
@@ -17,17 +19,46 @@ from scipy.signal import butter, sosfiltfilt
 
 SR = 44100
 events_path, music_path, out_path = sys.argv[1:4]
+vo_path = sys.argv[4] if len(sys.argv) > 4 else None
 meta = json.load(open(events_path))
 DUR = meta['duration']
 N = int(SR * DUR)
 M = meta['music']
+T = np.arange(N) / SR
+
+
+def load(path, filters=None):
+    cmd = ['ffmpeg', '-v', 'error', '-i', path] + (['-af', filters] if filters else []) + ['-f', 'f32le', '-ac', '2', '-ar', str(SR), '-']
+    a = np.frombuffer(subprocess.run(cmd, capture_output=True, check=True).stdout, dtype='<f4').reshape(-1, 2).astype(np.float64)[:N]
+    return np.pad(a, ((0, N - len(a)), (0, 0)))
+
+
+def midi_hz(m):
+    return 440.0 * 2 ** ((m - 69) / 12)
+
+
+def make_pad():
+    """Musik latar lembut: akor Am–F–C–G (4 detik per akor) + arpeggio pelan."""
+    out = np.zeros((N, 2))
+    chords = [[45, 52, 57, 60, 64], [41, 48, 57, 60, 65], [48, 55, 60, 64, 67], [43, 50, 59, 62, 67]]
+    for k in range(int(DUR / 4) + 1):
+        t0, notes = k * 4.0, chords[k % 4]
+        n = int(5.5 * SR); t = np.arange(n) / SR
+        e = np.clip(t / 1.4, 0, 1) * np.clip((5.5 - t) / 1.6, 0, 1)
+        sig = sum(np.sin(2 * np.pi * midi_hz(m) * 2 ** (d / 1200) * t) for m in notes for d in (-6, 6)) / (len(notes) * 2)
+        i0 = int(t0 * SR); seg = (sig * e)[: N - i0]
+        out[i0:i0 + len(seg), 0] += seg; out[i0:i0 + len(seg), 1] += seg * .96
+        for j, m in enumerate([notes[2] + 12, notes[3] + 12, notes[4] + 12, notes[3] + 12]):
+            tp = t0 + j; np_ = int(1.8 * SR); tq = np.arange(np_) / SR
+            pl = (np.sin(2 * np.pi * midi_hz(m) * tq) + .25 * np.sin(4 * np.pi * midi_hz(m) * tq)) * np.minimum(tq / .01, 1) * np.exp(-tq / .5)
+            ip = int(tp * SR); seg = pl[: max(0, N - ip)] * .18
+            out[ip:ip + len(seg), 0] += seg * .8; out[ip:ip + len(seg), 1] += seg
+    out = sosfiltfilt(butter(2, 2500, 'low', fs=SR, output='sos'), out, axis=0)
+    return out / (np.max(np.abs(out)) + 1e-9) * .5
+
 
 # --- musik ---
-raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', music_path, '-f', 'f32le', '-ac', '2', '-ar', str(SR), '-'],
-                     capture_output=True, check=True).stdout
-music = np.frombuffer(raw, dtype='<f4').reshape(-1, 2).astype(np.float64)[:N]
-music = np.pad(music, ((0, N - len(music)), (0, 0)))
-T = np.arange(N) / SR
+music = make_pad() if music_path == 'pad' else load(music_path)
 
 
 def ramp(t, a, b):
@@ -38,22 +69,32 @@ def smooth(k):
     return k * k * (3 - 2 * k)
 
 
-# kurva "teredam": masuk saat kritik, paling dalam di malam hari, terbuka lagi saat fajar
-muff = (smooth(ramp(T, M['impact'], M['impact'] + 1.2)) * .85
+vo = None
+if vo_path:
+    # VO dirapikan ringan: buang dengung rendah, kurangi desis, redam "s" tajam, ratakan volume
+    vo = load(vo_path, 'highpass=f=80,afftdn=nf=-28,deesser=i=0.4,acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
+    env = np.abs(vo).mean(axis=1)
+    k = int(.25 * SR); env = np.convolve(env, np.ones(k) / k, 'same')
+    env = np.clip(env / (np.percentile(env, 95) + 1e-9), 0, 1)
+    music *= (1 - .7 * env)[:, None]          # ducking: musik mengecil saat ada suara
+    music[T > M.get('vo_end', DUR)] *= 1.6    # musik naik di kartu penutup
+if 'impact' in M:
+  # kurva "teredam": masuk saat kritik, paling dalam di malam hari, terbuka lagi saat fajar
+  muff = (smooth(ramp(T, M['impact'], M['impact'] + 1.2)) * .85
         - smooth(ramp(T, M['cards'] - .5, M['cards'] + .6)) * .5
         - smooth(ramp(T, M['dawn'] - .4, M['dawn'] + 1.8)) * .35)
-muff = np.clip(muff, 0, 1)
-lp = sosfiltfilt(butter(2, 700, 'low', fs=SR, output='sos'), music, axis=0)
-music = music * (1 - muff[:, None]) + lp * muff[:, None] * 1.25
-# ducking: hantaman batu & judul penutup
-duck = 1 - .6 * np.exp(-np.maximum(T - M['impact'], 0) / .5) * (T >= M['impact'] - .02)
-duck *= 1 - .35 * np.exp(-np.maximum(T - M['end'], 0) / .6) * (T >= M['end'] - .02)
-music *= duck[:, None]
+  muff = np.clip(muff, 0, 1)
+  lp = sosfiltfilt(butter(2, 700, 'low', fs=SR, output='sos'), music, axis=0)
+  music = music * (1 - muff[:, None]) + lp * muff[:, None] * 1.25
+  # ducking: hantaman batu & judul penutup
+  duck = 1 - .6 * np.exp(-np.maximum(T - M['impact'], 0) / .5) * (T >= M['impact'] - .02)
+  duck *= 1 - .35 * np.exp(-np.maximum(T - M['end'], 0) / .6) * (T >= M['end'] - .02)
+  music *= duck[:, None]
 
 # --- SFX ---
 sfx = np.zeros((N, 2))
 rng = np.random.default_rng(11)
-PENTA = [8, 11, 13, 15, 18]  # G# minor pentatonik (offset dari C)
+PENTA = [9, 12, 14, 16, 19] if music_path == 'pad' else [8, 11, 13, 15, 18]  # A minor (pad) / G# minor pentatonik
 
 
 def note(deg, octave=6):
@@ -117,11 +158,11 @@ def pan_r():
     return rng.uniform(-.6, .6)
 
 
-END_HIT = next(e['t'] for e in meta['events'] if e['type'] == 'end_hit')
+HITS = sorted(e['t'] for e in meta['events'] if e['type'] in ('end_hit', 'door_open'))
 for e in meta['events']:
     t0, k = e['t'], e['type']
-    if k == 'riser':
-        e['dur'] = END_HIT - t0
+    if k == 'riser':  # riser naik sampai hantaman berikutnya
+        e['dur'] = next((h - t0 for h in HITS if h > t0 + .2), 1.5)
     if k == 'star':
         i = e['i']
         g = .2 if i < 10 else .2 * max(.25, 1 - (i - 10) / 70)
@@ -189,6 +230,25 @@ for e in meta['events']:
         t = tt(d)
         s = bandnoise(d, 800, 9000) * (t / d) ** 2.5 + .3 * sweep(200, 900, d, .7) * (t / d) ** 2
         add(s, t0, .22)
+    elif k == 'unlock':
+        add(np.sin(2 * np.pi * 2600 * tt(.05)) * np.exp(-tt(.05) / .008), t0, .35)
+        add(thud(300, 180, .12, .5, .02), t0 + .03, .35)
+        for j, d in enumerate((0, 2, 4)):
+            add(bell(note(d + 2, 6), 1.4, .45), t0 + .08 + j * .07, .12, -.3 + .3 * j)
+    elif k == 'alarm':
+        for j in range(3):
+            add(np.sin(2 * np.pi * 1320 * tt(.14)) * np.hanning(int(.14 * SR)), t0 + j * .3, .12)
+            add(np.sin(2 * np.pi * 1760 * tt(.14)) * np.hanning(int(.14 * SR)), t0 + j * .3 + .15, .1)
+    elif k == 'smudge':
+        add(sosfiltfilt(butter(2, 400, 'low', fs=SR, output='sos'), rng.normal(0, 1, int(.4 * SR))) * np.exp(-tt(.4) / .08), t0, .5)
+        add(sweep(220, 140, .3, 1) * np.exp(-tt(.3) / .1), t0, .12)
+    elif k == 'door_open':
+        t = tt(1.6)
+        creak = np.sin(2 * np.pi * np.cumsum(140 + 40 * np.sin(2 * np.pi * 3 * t) + 60 * t) / SR) * np.hanning(len(t))
+        add(sosfiltfilt(butter(2, [300, 2500], 'band', fs=SR, output='sos'), creak), t0, .12)
+        for j, d in enumerate((0, 2, 4, 7, 9)):
+            add(bell(note(d, 5), 3.5, 1.6), t0 + .4 + j * .09, .1)
+        add(thud(70, 40, 2.4, .1, .9), t0 + .4, .35)
     elif k == 'end_hit':
         add(thud(80, 35, 2.5, .3, .8), t0, .5)
         for j, d in enumerate((0, 2, 4, 7)):
@@ -207,7 +267,9 @@ for c in range(2):
     wet[:, c] = np.fft.irfft(np.fft.rfft(sfx[:, c], nfft) * np.fft.rfft(ir, nfft), nfft)[:N]
 sfx = sfx * .85 + wet * .35
 
-mix = music * .8 + sfx
+mix = music * (.55 if vo is not None else .8) + sfx * (.8 if vo is not None else 1)
+if vo is not None:
+    mix += vo * 1.0
 fade = np.ones(N)
 fade[: int(.4 * SR)] = np.linspace(0, 1, int(.4 * SR))
 fade[-int(2.5 * SR):] = np.linspace(1, 0, int(2.5 * SR)) ** 1.5
