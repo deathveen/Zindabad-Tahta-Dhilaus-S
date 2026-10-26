@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Render final satu episode: SFX → mix audio → render frame → gabung → contact sheet.
-#   finalize.sh <repo>/video <slug> vo.mp3 <out.mp4> [musik.mp3|pad]
+#   finalize.sh <repo>/video <slug> vo.wav <out.mp4> [musik.mp3|pad]
+# vo.wav = hasil prep_vo.sh (sudah jernih & 1.2x), jadi audio.py tidak menjernihkannya lagi.
 set -euo pipefail
 VID="$1"; SLUG="$2"; VO="$3"; OUT="$4"; MUSIK="${5:-pad}"
 WORK="$(mktemp -d)"
 cd "$VID"
 node dump_events.js "$SLUG/render.html" "$WORK/events.json"
-python3 -I audio.py "$WORK/events.json" "$MUSIK" "$WORK/mix.wav" "$VO"
+VO_SIAP=1 python3 -I audio.py "$WORK/events.json" "$MUSIK" "$WORK/mix.wav" "$VO"
 RENDER_HTML="$SLUG/render.html" node render.js "$WORK/video.mp4" 4
 ffmpeg -v error -y -i "$WORK/video.mp4" -i "$WORK/mix.wav" -c:v copy \
   -af "loudnorm=I=-14:TP=-1.5:LRA=11" -c:a aac -b:a 192k -ar 44100 -shortest -movflags +faststart "$OUT"

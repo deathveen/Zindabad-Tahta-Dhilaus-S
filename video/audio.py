@@ -72,7 +72,9 @@ def smooth(k):
 vo = None
 if vo_path:
     # VO dirapikan ringan: buang dengung rendah, kurangi desis, redam "s" tajam, ratakan volume
-    vo = load(vo_path, 'highpass=f=80,afftdn=nf=-28,deesser=i=0.4,acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
+    # (dilewati bila VO sudah dijernihkan prep_vo.sh: VO_SIAP=1, diatur finalize.sh)
+    import os
+    vo = load(vo_path, None if os.environ.get('VO_SIAP') else 'highpass=f=80,afftdn=nf=-28,deesser=i=0.4,acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
     env = np.abs(vo).mean(axis=1)
     k = int(.25 * SR); env = np.convolve(env, np.ones(k) / k, 'same')
     env = np.clip(env / (np.percentile(env, 95) + 1e-9), 0, 1)

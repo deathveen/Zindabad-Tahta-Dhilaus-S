@@ -1,0 +1,421 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="../branding/brand.js"></script>
+<script src="vo_env.js"></script>
+<script>
+// Faedah Harian · "Setelan Pabrik Perintah" (kaidah: al-aṣlu fil amri lil wujūb).
+// Waktu animasi = waktu VO (detik, VO sudah 1.2x). Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+const W = 720, H = 1280, SS = 1.5;
+const VO_END = 111.75, DURATION = 117.9;   // kartu follow mulai saat Vonya mengajak follow
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+let NT = 0;
+</script>
+<script src="../engine/lib.js"></script>
+<script>
+// ---------- naskah (caption mengikuti VO) ----------
+const CAPTIONS = [
+  [0.38, 2.1, 'Di Al-Qur’an ada perintah:'],
+  [2.1, 4.6, '*“makan dan minumlah.”*'],
+  [4.86, 6.3, 'Di hadis juga ada perintah:'],
+  [6.3, 9.85, '*peliharalah jenggot*, *angkatlah sarung* sampai atas mata kaki,'],
+  [9.95, 11.1, 'dan *menikahlah*.'],
+  [11.15, 14.65, 'Pertanyaannya, kenapa yang satu dihukumi *wajib*,'],
+  [14.75, 18.5, 'yang satu *sunnah*, dan yang satu cuma boleh atau *mubah*?'],
+  [18.56, 23.2, 'Padahal semuanya sama-sama pakai *kalimat perintah*.'],
+  [23.25, 28.4, 'Nah, rahasianya ada di *kaidah pertama* ilmu ushul fiqih:'],
+  [28.51, 31.55, '*Al-aṣlu fil amri lil wujūb.*'],
+  [31.63, 34.95, 'Setiap ada kalimat perintah atau *fi‘il amr*,'],
+  [35.03, 38.35, '*setelan pabriknya*, alias hukum asalnya, memang *wajib*.'],
+  [38.43, 41.2, 'Begitu turun perintah *aqīmuṣ-ṣalāh*,'],
+  [41.25, 44.65, '“dirikanlah shalat”, hukumnya otomatis *wajib*.'],
+  [44.73, 47.55, 'Tapi ada *lanjutan* kaidahnya:'],
+  [47.62, 52.05, 'itu berlaku selama tidak ada *qarinah*, alias dalil atau indikasi lain'],
+  [52.13, 54.9, 'yang memalingkannya ke hukum *sunnah* atau *mubah*.'],
+  [54.98, 57.2, 'Contohnya tentang *isbal*.'],
+  [57.26, 61.2, 'Ada hadis yang memerintahkan *mengangkat pakaian* di atas mata kaki,'],
+  [61.26, 63.7, 'dan *mengancam* orang yang memanjangkannya.'],
+  [63.88, 66.5, 'Harusnya mutlak *wajib* dan *haram*, kan?'],
+  [66.6, 69.3, 'Tapi, saat sahabat *Abu Bakar* melapor'],
+  [69.3, 71.7, 'bahwa sarungnya sering *melorot* tanpa sengaja,'],
+  [71.77, 74.1, 'Nabi ﷺ bersabda:'],
+  [74.17, 77.0, '*“Innaka lasta mimman yaf‘aluhu khuyalā’.”*'],
+  [77.04, 79.4, 'Artinya: “Engkau bukan termasuk orang'],
+  [79.4, 81.3, 'yang melakukannya karena *sombong*.”'],
+  [81.3, 83.6, 'Kalimat *“bukan karena sombong”* inilah'],
+  [83.68, 85.9, 'yang jadi *qarinah* pembelok hukum,'],
+  [85.9, 88.2, 'bahwa titik haramnya ada pada *kesombongan*.'],
+  [88.25, 90.9, 'Sehingga, perintah mengangkat celana tanpa kesombongan'],
+  [90.9, 93.65, 'berbelok dari wajib menjadi *sunnah*.'],
+  [93.72, 96.4, 'Begitu juga perintah *“makan dan minumlah”*,'],
+  [96.46, 99.4, 'dibelokkan jadi *mubah*, karena secara naluri,'],
+  [99.48, 102.45, 'manusia pasti butuh makan, tanpa perlu *diwajibkan*.'],
+  [102.5, 106.25, 'Jadi, bahaya banget kan, kalau gampang nge-judge *“ini wajib”*'],
+  [106.33, 108.45, 'atau *“ini dosa”*, cuma modal baca sepotong terjemahan,'],
+  [108.5, 111.7, 'dan nggak ngerti *kaidah ushul fiqih*-nya.'],
+];
+
+// ---------- elemen ----------
+const HUKUM = [['WAJIB', '#E2574C'], ['SUNNAH', '#4E8B5F'], ['MUBAH', '#4F86C9']];
+// saklar hukum: pos 0 = WAJIB, 1 = SUNNAH, 2 = MUBAH (boleh pecahan saat berputar)
+function saklar(cx, cy, s, pos, o = {}) {
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+  // bayangan dan pelat
+  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(0, 168, 150, 16, 0, 0, 6.28); ctx.fill();
+  ctx.fillStyle = '#3A3348'; roundRect(-235, -170, 470, 320, 46); ctx.fill();
+  ctx.fillStyle = '#FBF5EA'; roundRect(-225, -160, 450, 300, 40); ctx.fill();
+  ctx.strokeStyle = 'rgba(42,34,51,.15)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 30, 150, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
+  HUKUM.forEach(([lab, col], i) => {
+    const a = (-150 + i * 60) * Math.PI / 180, lit = clamp(1 - Math.abs(pos - i) * 1.6) * (o.dim ?? 1);
+    const lx = Math.cos(a) * 128, ly = 30 + Math.sin(a) * 128;
+    if (lit > 0) { const g = ctx.createRadialGradient(lx, ly, 2, lx, ly, 46); g.addColorStop(0, hexA(col, .55 * lit)); g.addColorStop(1, hexA(col, 0)); ctx.fillStyle = g; ctx.fillRect(lx - 46, ly - 46, 92, 92); }
+    ctx.fillStyle = mix('#D8D0C4', col, lit); ctx.beginPath(); ctx.arc(lx, ly, 13, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = '#2A2233'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.font = '900 21px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = mix('#9A8E86', col, .4 + .6 * lit);
+    ctx.fillText(lab, i === 1 ? 0 : Math.cos(a) * 128, i === 1 ? 30 - 128 - 24 : 30 + Math.sin(a) * 128 - 24);
+  });
+  // kenop + jarum
+  const ang = (-150 + pos * 60) * Math.PI / 180;
+  ctx.fillStyle = '#2A2233'; ctx.beginPath(); ctx.arc(0, 30, 74, 0, 6.28); ctx.fill();
+  ctx.fillStyle = '#4A4260'; ctx.beginPath(); ctx.arc(0, 30, 64, 0, 6.28); ctx.fill();
+  ctx.save(); ctx.translate(0, 30); ctx.rotate(ang);
+  ctx.fillStyle = AMBER; ctx.beginPath(); ctx.moveTo(98, 0); ctx.lineTo(56, -12); ctx.lineTo(56, 12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#6A6084'; roundRect(-8, -60, 16, 120, 8); ctx.fill();
+  ctx.restore();
+  // lubang kunci di tengah kenop (gembok kecil saat terkunci)
+  const lk = o.lock ?? 1;
+  ctx.fillStyle = '#1B1724'; ctx.beginPath(); ctx.arc(0, 24, 9, 0, 6.28); ctx.fill(); ctx.fillRect(-4, 24, 8, 18);
+  if (lk > 0) {
+    ctx.save(); ctx.globalAlpha = lk; ctx.translate(0, 112);
+    ctx.strokeStyle = '#9AA0AB'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0, -6 - (1 - lk) * 8, 10, Math.PI, 0); ctx.stroke();
+    ctx.fillStyle = '#9AA0AB'; roundRect(-15, -6, 30, 22, 5); ctx.fill(); ctx.restore();
+  }
+  // label "SETELAN PABRIK" tergantung di dekat WAJIB
+  if (o.tag > 0) {
+    const sw = Math.sin(NT * 2.2) * .06, tk = backOut(clamp(o.tag));
+    ctx.save(); ctx.translate(-190, -150); ctx.rotate(-.18 + sw); ctx.scale(tk, tk);
+    ctx.strokeStyle = '#7A6A5C'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-10, -40); ctx.stroke();
+    ctx.fillStyle = '#F2B544'; ctx.beginPath(); ctx.moveTo(-90, -40); ctx.lineTo(60, -40); ctx.lineTo(76, -60); ctx.lineTo(60, -80); ctx.lineTo(-90, -80); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2A2233'; ctx.beginPath(); ctx.arc(60, -60, 4, 0, 6.28); ctx.fill();
+    ctx.font = '900 17px Inter'; ctx.textAlign = 'center'; ctx.fillText('SETELAN PABRIK', -14, -54);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function hexA(c, a) { const [r, g, b] = hex(c); return `rgba(${r},${g},${b},${a})`; }
+// kunci emas bertuliskan qarinah (label boleh lebih dari satu baris)
+function kunci(x, y, s, rot, label, alpha = 1) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+  const g = ctx.createRadialGradient(-70, 0, 4, -70, 0, 90); g.addColorStop(0, 'rgba(255,214,120,.45)'); g.addColorStop(1, 'rgba(255,214,120,0)'); ctx.fillStyle = g; ctx.fillRect(-160, -90, 180, 180);
+  ctx.fillStyle = '#F2B544'; ctx.strokeStyle = '#B07A1E'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(-70, 0, 30, 0, 6.28); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#FBF5EA'; ctx.beginPath(); ctx.arc(-70, 0, 12, 0, 6.28); ctx.fill();
+  ctx.fillStyle = '#F2B544'; ctx.fillRect(-42, -7, 82, 14); ctx.strokeRect(-42, -7, 82, 14);
+  ctx.fillRect(20, 7, 9, 14); ctx.fillRect(32, 7, 8, 10);
+  // label
+  if (label) {
+    const ls = Array.isArray(label) ? label : [label];
+    ctx.rotate(-rot); ctx.font = '900 17px Inter'; ctx.textAlign = 'center';
+    const w = Math.max(...ls.map(l => ctx.measureText(l).width)) + 26, h = 14 + ls.length * 21;
+    ctx.fillStyle = '#2A2233'; roundRect(-70 - w / 2, 38, w, h, 12); ctx.fill();
+    ctx.fillStyle = AMBER; ls.forEach((l, i) => ctx.fillText(l, -70, 58 + i * 21));
+  }
+  ctx.restore();
+}
+// kartu perintah dengan ikon + stempel hukum
+function ikon(kind, x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.lineCap = 'round';
+  if (kind === 'makan') {
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(-8, 14, 40, 13, 0, 0, 6.28); ctx.fill(); ctx.strokeStyle = '#C9BBAA'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#F2B544'; ctx.beginPath(); ctx.ellipse(-8, 6, 26, 12, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#E2574C'; ctx.beginPath(); ctx.arc(-14, 0, 5, 0, 6.28); ctx.arc(-2, -1, 4, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#9FD3E8'; ctx.beginPath(); ctx.moveTo(34, -22); ctx.lineTo(54, -22); ctx.lineTo(51, 20); ctx.lineTo(37, 20); ctx.closePath(); ctx.fill(); ctx.strokeStyle = '#5B8FB0'; ctx.stroke();
+  } else if (kind === 'jenggot') {
+    head(0, -2, 30, { wear: 'kopiah', capColor: '#2B2B33', beard: '#4A3426', mood: .6 });
+    ctx.fillStyle = '#4A3426'; ctx.beginPath(); ctx.moveTo(-22, 14); ctx.quadraticCurveTo(0, 52, 22, 14); ctx.quadraticCurveTo(0, 30, -22, 14); ctx.fill();
+  } else if (kind === 'sarung') {
+    ctx.fillStyle = '#6A4FA0'; ctx.beginPath(); ctx.moveTo(-30, -34); ctx.lineTo(30, -34); ctx.lineTo(34, 18); ctx.lineTo(-34, 18); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 3; [-14, 4, 22].forEach(v => { ctx.beginPath(); ctx.moveTo(-32, v - 16); ctx.lineTo(32, v - 16); ctx.stroke(); });
+    [-12, 12].forEach(v => { ctx.beginPath(); ctx.moveTo(v, -34); ctx.lineTo(v, 18); ctx.stroke(); });
+    ctx.fillStyle = '#EFC7A5'; [-14, 14].forEach(v => { ctx.beginPath(); ctx.ellipse(v, 32, 11, 6, 0, 0, 6.28); ctx.fill(); });
+    ctx.strokeStyle = '#4E8B5F'; ctx.setLineDash([5, 5]); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-44, 25); ctx.lineTo(44, 25); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#4E8B5F'; ctx.beginPath(); ctx.moveTo(42, 18); ctx.lineTo(50, 6); ctx.lineTo(34, 6); ctx.fill(); ctx.fillRect(40, -8, 4, 16);
+  } else if (kind === 'nikah') {
+    ctx.strokeStyle = '#F2B544'; ctx.lineWidth = 7; [[-14, 4], [14, 4]].forEach(([a, b]) => { ctx.beginPath(); ctx.arc(a, b, 20, 0, 6.28); ctx.stroke(); });
+    ctx.fillStyle = '#BFE6F5'; ctx.beginPath(); ctx.moveTo(-14, -22); ctx.lineTo(-6, -30); ctx.lineTo(-22, -30); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#F29BB8'; ctx.beginPath(); ctx.moveTo(0, -34); ctx.bezierCurveTo(-10, -46, -22, -36, 0, -22); ctx.bezierCurveTo(22, -36, 10, -46, 0, -34); ctx.fill();
+  } else if (kind === 'shalat') {
+    sajadah(0, 30, 90); figure(0, 26, .4, { pose: 'stand', robe: '#F4EEE2', wear: 'kopiah', capColor: '#FFFFFF', arms: 'fold' });
+  }
+  ctx.restore();
+}
+function kartu(x, y, k, kind, teks, sub, stamp = -1, stampK = 0) {
+  if (k <= 0) return;
+  const sc = backOut(clamp(k));
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc); ctx.globalAlpha = clamp(k * 2);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; roundRect(-122, -92, 252, 196, 24); ctx.fill();
+  ctx.fillStyle = '#FFFDF7'; roundRect(-126, -98, 252, 196, 24); ctx.fill();
+  ctx.strokeStyle = 'rgba(122,106,92,.25)'; ctx.lineWidth = 2; ctx.stroke();
+  ikon(kind, 0, -38, 1);
+  ctx.textAlign = 'center'; ctx.font = '900 20px Inter'; ctx.fillStyle = '#2A2233'; ctx.fillText(teks, 0, 42);
+  ctx.font = '600 13px Inter'; ctx.fillStyle = '#7A6A5C'; ctx.fillText(sub, 0, 66);
+  if (stamp >= 0 && stampK > 0) {
+    const [lab, col] = HUKUM[stamp], sk = 1 + 1.4 * (1 - easeOut(clamp(stampK)));
+    ctx.save(); ctx.translate(70, -84); ctx.rotate(-.18); ctx.scale(sk * .85, sk * .85); ctx.globalAlpha = clamp(stampK * 3);
+    ctx.strokeStyle = col; ctx.lineWidth = 4; roundRect(-58, -20, 116, 40, 8); ctx.stroke();
+    ctx.fillStyle = '#FFFDF7'; ctx.fill(); ctx.stroke();
+    ctx.font = '900 21px Inter'; ctx.fillStyle = col; ctx.fillText(lab, 0, 8); ctx.restore();
+  }
+  ctx.restore();
+}
+function rifdaAt(T, x, a, b, arms, from = -1, s = .82) {
+  const rin = easeOut(prog(T, a, a + .7)), rout = easeIn(prog(T, b - .5, b));
+  if (rin <= 0 || rout >= 1) return;
+  const xx = lerp(x + from * 240, x, rin) + from * 260 * rout;
+  if (from > 0) { ctx.save(); ctx.translate(xx, 905); ctx.scale(-1, 1); drawRifda(0, 0, s, { arms, talk: talkVO(T), look: .5 }); ctx.restore(); }
+  else drawRifda(xx, 905, s, { arms, talk: talkVO(T), look: .5, label: prog(T, a + .4, a + .8) * (1 - prog(T, a + 2.6, a + 3)) });
+}
+function perpus(T, warm = 0) {
+  sky([[0, mix('#F6E9D2', '#FFF1D6', warm)], [1, mix('#E7CFA8', '#F2D7A4', warm)]]);
+  // rak buku di latar
+  const r = rng(77);
+  [[24, 250], [526, 250]].forEach(([x0, y0]) => {
+    ctx.fillStyle = 'rgba(122,84,52,.25)'; ctx.fillRect(x0, y0, 170, 560);
+    for (let row = 0; row < 5; row++) {
+      let x = x0 + 8; const y = y0 + 20 + row * 110;
+      while (x < x0 + 160) { const w = 12 + r() * 12, h = 60 + r() * 28; ctx.fillStyle = ['#C98E5A', '#8C5A3C', '#4E8B5F', '#B9A6E0', '#D8B25A'][Math.floor(r() * 5)]; ctx.globalAlpha = .45; ctx.fillRect(x, y + 88 - h, w - 2, h); x += w; }
+      ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(122,84,52,.35)'; ctx.fillRect(x0, y + 88, 170, 6);
+    }
+  });
+  particles(T, 'rgba(255,214,140,1)', 22, 33, .3);
+  ctx.fillStyle = '#B98552'; ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0, 884, W, 4);
+}
+
+// ---------- adegan ----------
+const ST = [13.4, 15.0, 16.9];   // stempel wajib, sunnah, mubah
+function S_perintah(T) {
+  perpus(T);
+  headline('SAMA-SAMA PERINTAH', ['TAPI KOK BEDA?'], T, 11.4, 0, { y: 150, size: 54, bigColor: '#8C3B2E', smallColor: '#7A6A5C' });
+  const K = [[2.2, 'makan', 'Makan & minumlah', 'QS. Al-A‘raf: 31', 2, ST[2]], [6.5, 'jenggot', 'Peliharalah jenggot', 'HR. Al-Bukhari 5893', 0, ST[0]],
+    [7.9, 'sarung', 'Angkat sarungmu', 'HR. Abu Dawud 4084', 1, ST[1]], [10.0, 'nikah', 'Menikahlah', 'HR. Al-Bukhari 5066', 1, ST[1] + .35]];
+  K.forEach(([a, kind, t1, t2, st, sa], i) => {
+    const x = 214 + (i % 2) * 292, y = 375 + Math.floor(i / 2) * 230 + Math.sin(T * 1.3 + i) * 4;
+    kartu(x, y, prog(T, a, a + .5), kind, t1, t2, st, prog(T, sa, sa + .3));
+  });
+  // "padahal sama-sama perintah": label fi'il amr menyala di semua kartu
+  const fk = easeOut(prog(T, 19.3, 19.9));
+  if (fk > 0) {
+    ctx.save(); ctx.globalAlpha = fk; ctx.textAlign = 'center';
+    ctx.fillStyle = '#2A2233'; roundRect(W / 2 - 150, 812 - (1 - fk) * 10, 300, 46, 23); ctx.fill();
+    ctx.font = '900 20px Inter'; ctx.fillStyle = AMBER; ctx.fillText('SEMUA = FI‘IL AMR', W / 2, 842 - (1 - fk) * 10); ctx.restore();
+  }
+  // tanda tanya besar
+  // Rifda membuka dengan pertanyaan
+  const rin = easeOut(prog(T, .3, 1.1)), rout = easeIn(prog(T, 1.9, 2.3));
+  if (rout < 1) drawRifda(lerp(-140, 150, rin) - rout * 300, 905, 1.0, { arms: 'wave', talk: talkVO(T), label: prog(T, .8, 1.2), look: .5 });
+  rifdaAt(T, 92, 11.2, 23.0, 'point');
+}
+function S_kaidah(T) {
+  perpus(T, .5);
+  const g = ctx.createRadialGradient(W / 2, 400, 30, W / 2, 400, 460); g.addColorStop(0, 'rgba(255,236,180,.6)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  rays(W / 2, 400, 60, 620, 14, .35 * prog(T, 28.4, 29.4), '255,226,150', T * .08);
+  headline('RAHASIANYA DI', ['KAIDAH PERTAMA', 'USHUL FIQIH'], T, 23.5, 0, { y: 150, size: 46, bigColor: B.daunGelap, smallColor: '#7A6A5C' });
+  dalilCard(T, 28.3, 'KAIDAH USHUL FIQIH', ['الأَصْلُ فِي الأَمْرِ لِلْوُجُوبِ'], ['“Hukum asal sebuah perintah', 'adalah wajib.”'], 'Pendapat jumhur ulama ushul fiqih',
+    { y: 360, h: 300, arabSize: 50, bg: 'rgba(35,69,54,.95)' });
+  rifdaAt(T, 92, 23.6, 31.5, 'chest');
+}
+// posisi saklar (0 wajib .. 2 mubah) di adegan saklar
+function posSaklar(T) {
+  if (T < 52.4) return 0;
+  const a = easeInOut(prog(T, 52.4, 53.1)), b = easeInOut(prog(T, 53.5, 54.1));
+  return a + b;
+}
+function S_saklar(T) {
+  perpus(T, .2);
+  headline('SETIAP FI‘IL AMR', ['SETELAN PABRIK:', 'WAJIB'], T, 31.8, 47.4, { y: 140, size: 46, bigColor: '#B23E33', smallColor: '#7A6A5C' });
+  headline('KECUALI ADA', ['QARINAH'], T, 47.6, 0, { y: 140, size: 58, bigColor: '#B07A1E', smallColor: '#7A6A5C' });
+  const sk = backOut(prog(T, 31.8, 32.5)), lockOpen = easeOut(prog(T, 50.2, 50.8));
+  const flash = prog(T, 41.6, 42.0) * (1 - prog(T, 42.6, 43.4));
+  ctx.save(); ctx.translate(410, 690); ctx.scale(sk, sk);
+  if (flash > 0) rays(0, 30, 60, 330, 14, .6 * flash, '255,140,120', T * .2);
+  saklar(0, 0, .95, posSaklar(T), { tag: prog(T, 35.2, 35.8), lock: 1 - lockOpen });
+  ctx.restore();
+  // kartu "dirikanlah shalat" turun ke saklar
+  const ck = easeOut(prog(T, 38.6, 39.4)), cout = easeIn(prog(T, 44.4, 45.0));
+  if (ck > 0 && cout < 1) {
+    ctx.save(); ctx.globalAlpha = 1 - cout; kartu(410, lerp(300, 390, ck) - cout * 60, ck, 'shalat', 'وَأَقِيمُوا الصَّلَاةَ', '“Dirikanlah shalat”', 0, prog(T, 41.6, 41.9)); ctx.restore();
+  }
+  // kunci QARINAH terbang lalu masuk ke lubang kunci
+  const kin = easeInOut(prog(T, 48.4, 49.8)), kout = prog(T, 54.4, 54.9);
+  if (kin > 0) kunci(lerp(780, 410 + 70 * .95, kin), lerp(420, 712, kin), .9, lerp(-.6, 0, kin) + easeInOut(prog(T, 49.8, 50.4)) * 1.2, ['QARINAH', '(dalil / indikasi)'], 1 - kout);
+  rifdaAt(T, 92, 31.9, 54.8, 'point');
+}
+function S_isbal(T) {
+  const red = easeInOut(prog(T, 61.3, 62.4));
+  sky([[0, mix('#F3E6D6', '#3A1F24', red)], [1, mix('#E2CFB6', '#5A2A2A', red)]]);
+  particles(T, red > .5 ? 'rgba(255,140,110,1)' : 'rgba(255,214,140,1)', 18, 7, .3);
+  ctx.fillStyle = mix('#B98552', '#2A1416', red); ctx.fillRect(0, 884, W, H);
+  headline('CONTOH:', ['ISBAL'], T, 55.1, 61.0, { y: 150, size: 70, bigColor: '#8C3B2E', smallColor: '#7A6A5C' });
+  // kaki dan sarung besar: ujung sarung turun-naik terhadap garis mata kaki
+  const cx = 360, ank = 800;
+  const hem = T < 57.6 ? ank + 26 : T < 61.3 ? lerp(ank + 26, ank - 34, easeInOut(prog(T, 57.6, 58.6))) : lerp(ank - 34, ank + 40, easeInOut(prog(T, 61.4, 62.4)));
+  ctx.fillStyle = '#EFC7A5'; [-50, 50].forEach(dx => { ctx.beginPath(); ctx.moveTo(cx + dx - 26, ank - 70); ctx.lineTo(cx + dx + 26, ank - 70); ctx.lineTo(cx + dx + 26, ank + 50); ctx.quadraticCurveTo(cx + dx + 72 * Math.sign(dx || 1), ank + 60, cx + dx + 70 * Math.sign(dx || 1), ank + 80); ctx.lineTo(cx + dx - 26, ank + 80); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.1)'; ctx.beginPath(); ctx.arc(cx + dx + 4 * Math.sign(dx), ank, 10, 0, 6.28); ctx.fill(); ctx.fillStyle = '#EFC7A5'; });
+  ctx.save(); ctx.fillStyle = 'rgba(255,255,255,.12)'; roundRect(cx - 230, 470, 460, 410, 36); ctx.fill(); ctx.strokeStyle = mix('#7A6A5C', '#FFB3A8', red); ctx.lineWidth = 4; ctx.stroke(); ctx.clip();
+  ctx.fillStyle = '#5FA8A0'; ctx.fillRect(cx - 130, 440, 260, 60);
+  ctx.fillStyle = '#6A4FA0'; ctx.beginPath(); ctx.moveTo(cx - 110, 470); ctx.lineTo(cx + 110, 470); ctx.lineTo(cx + 124, hem); ctx.quadraticCurveTo(cx, hem + 10, cx - 124, hem); ctx.closePath(); ctx.fill();
+  ctx.save(); ctx.clip(); ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 6; for (let y = 500; y < 900; y += 60) { ctx.beginPath(); ctx.moveTo(cx - 140, y); ctx.lineTo(cx + 140, y); ctx.stroke(); } [-60, 0, 60].forEach(v => { ctx.beginPath(); ctx.moveTo(cx + v, 470); ctx.lineTo(cx + v * 1.1, 900); ctx.stroke(); }); ctx.restore();
+  ctx.restore();
+  // garis mata kaki
+  const ok = hem < ank;
+  ctx.strokeStyle = ok ? '#4E8B5F' : '#E2574C'; ctx.setLineDash([10, 8]); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(cx - 190, ank); ctx.lineTo(cx + 190, ank); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font = '800 18px Inter'; ctx.textAlign = 'left'; ctx.fillStyle = ok ? '#2F6247' : '#FFB3A8'; ctx.fillText('mata kaki', cx - 220, ank - 12);
+  if (T > 58.4 && T < 61.3) { const k = backOut(prog(T, 58.4, 58.8)); ctx.save(); ctx.translate(cx + 180, 620); ctx.scale(k, k); ctx.fillStyle = '#4E8B5F'; ctx.beginPath(); ctx.arc(0, 0, 30, 0, 6.28); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(-3, 11); ctx.lineTo(14, -10); ctx.stroke(); ctx.restore(); }
+  // kartu ancaman
+  dalilCard(T, 61.4, 'HR. AL-BUKHARI NO. 5787', ['مَا أَسْفَلَ مِنَ الْكَعْبَيْنِ', 'مِنَ الإِزَارِ فَفِي النَّارِ'], ['“Kain sarung yang di bawah mata kaki,', 'tempatnya di neraka.”'], 'Hadis shahih', { y: 120, h: 330, arabSize: 40, bg: 'rgba(40,14,18,.95)' });
+  // "harusnya mutlak wajib & haram, kan?"
+  const sk = backOut(prog(T, 63.9, 64.5));
+  if (sk > 0) {
+    ctx.save(); ctx.translate(560, 590); ctx.scale(sk * .42, sk * .42); saklar(0, 0, 1, 0, { lock: 1 }); ctx.restore();
+    const hk = prog(T, 65.2, 65.5); if (hk > 0) { ctx.save(); ctx.translate(170, 610); ctx.rotate(-.2); ctx.scale(1 + (1 - easeOut(hk)), 1 + (1 - easeOut(hk))); ctx.globalAlpha = hk; ctx.strokeStyle = '#FF8A7A'; ctx.lineWidth = 5; roundRect(-80, -26, 160, 52, 10); ctx.stroke(); ctx.font = '900 30px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#FF8A7A'; ctx.fillText('HARAM?', 0, 11); ctx.restore(); }
+  }
+}
+function S_abubakar(T) {
+  // kisah: senja di padang pasir. Abu Bakar رضي الله عنه sebagai siluet; Nabi ﷺ tidak digambar (diwakili cahaya).
+  sky([[0, '#3B2A55'], [.55, '#C96F5A'], [1, '#F2B57A']]);
+  const sun = ctx.createRadialGradient(560, 760, 10, 560, 760, 300); sun.addColorStop(0, 'rgba(255,220,150,.9)'); sun.addColorStop(1, 'rgba(255,220,150,0)'); ctx.fillStyle = sun; ctx.fillRect(0, 0, W, H);
+  hills([{ y: 830, a: 18, f: .006, p: 2, c: '#B5694A' }, { y: 870, a: 10, f: .01, p: 5, c: '#8A4A3A' }], T);
+  ctx.fillStyle = '#5A2E2A'; ctx.fillRect(0, 884, W, H);
+  // cahaya dari kanan saat "Nabi ﷺ bersabda"
+  const nl = easeOut(prog(T, 71.6, 72.6));
+  if (nl > 0) { rays(760, 640, 40, 700, 16, .55 * nl, '255,240,200', T * .06); const lg = ctx.createRadialGradient(760, 640, 10, 760, 640, 380); lg.addColorStop(0, `rgba(255,248,225,${.75 * nl})`); lg.addColorStop(1, 'rgba(255,248,225,0)'); ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H); }
+  // siluet Abu Bakar berjalan, sarung sebelah melorot
+  const walk = T < 71.8 ? (T - 66.6) * 22 : 114.4 + easeOut(prog(T, 71.8, 72.6)) * 10, gx = 150 + walk;
+  const bob = T < 71.8 ? Math.abs(Math.sin(T * 5)) * 4 : 0;
+  ctx.save(); ctx.translate(gx, 884 - bob); ctx.scale(1.6, 1.6);
+  figure(0, 0, 1, { pose: 'stand', robe: '#000', wear: 'sorban', sil: '#2A1820', rim: 1, arms: T > 69.3 && T < 71.8 ? 'point' : 'rest' });
+  const slip = clamp(Math.sin(T * 2.4) * .5 + .5) * prog(T, 68.4, 69.4);
+  ctx.fillStyle = '#2A1820'; ctx.beginPath(); ctx.moveTo(10, -30); ctx.lineTo(40, -30); ctx.lineTo(42, 2 + slip * 8); ctx.lineTo(12, 0 + slip * 8); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  const lk = easeOut(prog(T, 67.0, 67.6)) * (1 - prog(T, 73.6, 74.1));
+  if (lk > 0) { ctx.save(); ctx.globalAlpha = lk; ctx.textAlign = 'center'; const lx = clamp(gx * 1.5 - 180, 150, 570); ctx.fillStyle = 'rgba(42,24,32,.85)'; roundRect(lx - 140, 470, 280, 66, 18); ctx.fill(); ctx.font = '800 20px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Abu Bakar ash-Shiddiq', lx, 498); ctx.font = '700 20px FreeSerif'; ctx.fillStyle = AMBER; ctx.fillText('رَضِيَ اللَّهُ عَنْهُ', lx, 525); ctx.restore(); }
+  dalilCard(T, 74.2, 'HR. ABU DAWUD NO. 4085 · SHAHIH', ['لَسْتَ مِمَّنْ يَفْعَلُهُ خُيَلَاءَ'], ['“Engkau bukan termasuk orang', 'yang melakukannya karena sombong.”'], 'Semakna: HR. Al-Bukhari no. 5784',
+    { y: 130, h: 300, arabSize: 46, bg: 'rgba(40,20,36,.95)' });
+  // sorot kata خُيَلَاءَ ("karena sombong")
+  const ul = easeOut(prog(T, 79.6, 80.4));
+  if (ul > 0) { ctx.fillStyle = 'rgba(242,181,68,.8)'; ctx.fillRect(W / 2 - 200, 130 + 118 + 14, 120 * ul, 4); }
+}
+function S_belok(T) {
+  perpus(T, .3);
+  headline('QARINAH:', ['“BUKAN KARENA SOMBONG”'], T, 83.8, 0, { y: 140, size: 38, bigColor: '#B07A1E', smallColor: '#7A6A5C' });
+  const pos = easeInOut(prog(T, 90.6, 91.6)), click = prog(T, 91.5, 91.7) * (1 - prog(T, 92.2, 92.8));
+  ctx.save(); ctx.translate(410, 610);
+  if (click > 0) rays(0, 30 * .9, 60, 320, 14, .6 * click, '140,220,150', T * .2);
+  saklar(0, 0, .9, pos, { lock: 1 - easeOut(prog(T, 89.0, 89.6)) });
+  ctx.restore();
+  // kartu sarung kecil di atas saklar (perintah yang sedang dibahas)
+  kartu(410, 318, prog(T, 84.0, 84.5) * .75, 'sarung', 'Angkat sarungmu', 'perintah isbal', -1, 0);
+  // kunci "bukan karena sombong" masuk dan memutar
+  const kin = easeInOut(prog(T, 86.4, 88.6));
+  kunci(lerp(780, 410 + 70 * .9, kin), lerp(420, 637, kin), .9, lerp(-.5, 0, kin) + easeInOut(prog(T, 89.6, 91.6)) * 1.0, ['QARINAH:', 'bukan karena sombong'], prog(T, 86.4, 86.8));
+  // titik haramnya: sombong (ikon dada membusung dicoret halus)
+  const hk = easeOut(prog(T, 86.0, 86.6)) * (1 - prog(T, 88.2, 88.6));
+  if (hk > 0) { ctx.save(); ctx.globalAlpha = hk; ctx.textAlign = 'center'; ctx.fillStyle = '#8C3B2E'; roundRect(410 - 220, 812, 440, 50, 25); ctx.fill(); ctx.font = '900 18px Inter'; ctx.fillStyle = '#FFF4E0'; ctx.fillText('TITIK HARAMNYA: KESOMBONGAN', 410, 843); ctx.restore(); }
+  const jk = easeOut(prog(T, 91.8, 92.4));
+  if (jk > 0) { ctx.save(); ctx.globalAlpha = jk; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(35,69,54,.92)'; roundRect(410 - 220, 812, 440, 50, 25); ctx.fill(); ctx.font = '700 16px Inter'; ctx.fillStyle = '#FFF4E0'; ctx.fillText('tanpa sombong → sunnah (pendapat jumhur)', 410, 843); ctx.restore(); }
+  rifdaAt(T, 92, 84.0, 93.5, 'point');
+}
+function S_makan(T) {
+  sky([[0, '#FFF1DA'], [1, '#F6D3A8']]);
+  particles(T, 'rgba(255,200,120,1)', 18, 91, .4);
+  ctx.fillStyle = '#C98E5A'; ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, 884, W, 4);
+  dalilCard(T, 93.8, 'QS. AL-A‘RAF: 31', ['وَكُلُوا وَاشْرَبُوا وَلَا تُسْرِفُوا'], ['“… makan dan minumlah,', 'dan janganlah berlebih-lebihan.”'], 'Terjemahan Kemenag RI', { y: 110, h: 290, arabSize: 42, bg: 'rgba(35,69,54,.95)' });
+  // saklar kecil: diputar qarinah "naluri" ke MUBAH
+  const pos = 2 * easeInOut(prog(T, 97.6, 98.8));
+  ctx.save(); ctx.translate(250, 640); ctx.scale(backOut(prog(T, 94.4, 95.0)), backOut(prog(T, 94.4, 95.0)));
+  saklar(0, 0, .72, pos, { lock: 1 - easeOut(prog(T, 97.0, 97.5)) });
+  ctx.restore();
+  const kin = easeInOut(prog(T, 96.2, 97.0));
+  kunci(lerp(-120, 250 + 70 * .72, kin), lerp(800, 662, kin), .75, easeInOut(prog(T, 97.4, 98.8)) * 1.4, ['QARINAH:', 'naluri lapar'], prog(T, 96.2, 96.5));
+  // Dafa dengan piring, perut keroncong
+  const rumble = T > 99.4 && T < 101.6 ? Math.sin(T * 40) * 2 : 0;
+  drawDafa(570 + rumble, 882, 1.1, { t: T, mood: T > 101.2 ? 1 : .3, arms: 'lift', up: 1, target: 'hold', look: -.3 });
+  ikon('makan', 570 + 18, 882 - 80, .85);
+  if (rumble) { ctx.strokeStyle = 'rgba(140,59,46,.7)'; ctx.lineWidth = 3; [0, 1, 2].forEach(i => { ctx.beginPath(); ctx.arc(570, 820, 64 + i * 10, -.5, .5); ctx.stroke(); }); }
+}
+function S_judge(T) {
+  sky([[0, '#F4E6F0'], [1, '#E2CDE6']]);
+  ctx.fillStyle = '#9A84B8'; ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, 884, W, 4);
+  // potongan kertas terjemahan
+  const pk = backOut(prog(T, 102.7, 103.3));
+  ctx.save(); ctx.translate(470, 360); ctx.rotate(-.06); ctx.scale(pk, pk);
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.moveTo(-150, -110); ctx.lineTo(150, -110); ctx.lineTo(150, 40); for (let i = 0; i <= 10; i++) ctx.lineTo(150 - i * 30, 40 + (i % 2 ? 16 : -4)); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(42,34,51,.25)'; for (let i = 0; i < 4; i++) ctx.fillRect(-120, -70 + i * 26, i === 3 ? 140 : 240, 9);
+  ctx.font = '800 15px Inter'; ctx.fillStyle = '#7A6A5C'; ctx.textAlign = 'left'; ctx.fillText('terjemahan (sepotong)', -120, -84);
+  ctx.restore();
+  // stempel "WAJIB!" dan "DOSA!" lalu retak
+  const crack = prog(T, 108.6, 109.2);
+  [[104.4, 'WAJIB!', '#E2574C', 300, 560, -.2], [106.6, 'DOSA!', '#8C3B2E', 470, 650, .15]].forEach(([a, lab, col, x, y, r]) => {
+    const k = prog(T, a, a + .25); if (k <= 0) return;
+    ctx.save(); ctx.translate(x, y + crack * 40); ctx.rotate(r + crack * .2); const s = 1 + 1.5 * (1 - easeOut(k)); ctx.scale(s, s); ctx.globalAlpha = k * (1 - crack * .65);
+    ctx.strokeStyle = col; ctx.lineWidth = 6; roundRect(-110, -38, 220, 76, 12); ctx.stroke(); ctx.font = '900 46px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = col; ctx.fillText(lab, 0, 16);
+    if (crack > 0) { ctx.strokeStyle = '#2A2233'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-30, -44); ctx.lineTo(-10, -10); ctx.lineTo(-24, 8); ctx.lineTo(4, 46); ctx.stroke(); }
+    ctx.restore();
+  });
+  drawDafa(500, 882, .9, { t: T, mood: T < 108.6 ? .7 : -.4, arms: T < 108.6 ? 'point' : 'rest', sad: prog(T, 108.8, 109.4), look: -.4 });
+  rifdaAt(T, 150, 102.8, 111.6, T < 108.4 ? 'chest' : 'point');
+  // tanda "tunggu dulu"
+  const tk = backOut(prog(T, 108.6, 109.0));
+  if (tk > 0) { ctx.save(); ctx.translate(170, 640); ctx.scale(tk, tk); ctx.fillStyle = '#FFFFFF'; roundRect(-92, -30, 184, 60, 20); ctx.fill(); ctx.beginPath(); ctx.moveTo(-20, 28); ctx.lineTo(-40, 56); ctx.lineTo(4, 28); ctx.fill(); ctx.font = '900 22px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#8C3B2E'; ctx.fillText('Tunggu dulu!', 0, 8); ctx.restore(); }
+}
+function S_follow(T) {
+  // kartu follow; Rifda ikut berbicara selama ajakan follow
+  S_outro(T);
+  const rk = easeOut(prog(T, VO_END + .5, VO_END + 1.3));
+  if (T < 116.2) drawRifda(W / 2, 906 + (1 - rk) * 80, 1.45, { arms: 'wave', mood: 1, talk: talkVO(T) });
+}
+
+const SCENES = [[0, S_perintah], [23.25, S_kaidah], [31.63, S_saklar], [54.98, S_isbal], [66.6, S_abubakar], [83.68, S_belok], [93.72, S_makan], [102.5, S_judge], [VO_END, S_follow]];
+
+// efek suara (detik video) untuk audio.py
+function sfxEvents() {
+  const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
+  add(.3, 'whoosh_soft');
+  SCENES.slice(1).forEach(([c]) => add(c - .6, 'whoosh'));
+  [2.2, 6.5, 7.9, 10.0].forEach((t, k) => add(t, 'place', { k: k + 1 }));
+  ST.forEach(t => add(t, 'set_down')); add(11.4, 'title');
+  add(23.5, 'title'); add(28.3, 'title');
+  add(31.8, 'place', { k: 2 }); add(35.2, 'leaf_fly'); add(41.6, 'clank');
+  add(47.6, 'title'); add(48.6, 'riser'); add(50.2, 'unlock'); add(52.4, 'balance'); add(53.5, 'balance');
+  add(55.1, 'title'); add(58.4, 'place', { k: 3 }); add(61.4, 'sting'); add(65.2, 'impact');
+  add(71.6, 'rise', { i: 2 }); add(74.2, 'title');
+  add(83.8, 'title'); add(86.4, 'riser'); add(89.0, 'unlock'); add(91.5, 'end_hit');
+  add(93.8, 'title'); add(96.2, 'whoosh_soft'); add(97.0, 'unlock'); add(98.4, 'balance');
+  add(102.7, 'place', { k: 1 }); add(104.4, 'impact'); add(106.6, 'impact'); add(108.6, 'fall_short');
+  add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
+  return ev.sort((a, b) => a.t - b.t);
+}
+// cover Reels (gambar diam untuk grid profil)
+function drawCover() {
+  NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  perpus(3, .3);
+  const g = ctx.createRadialGradient(470, 760, 30, 470, 760, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  saklar(470, 740, .9, 0, { tag: 1, lock: 1 });
+  kunci(640, 980, .8, -.5, 'QARINAH');
+  const tg = ctx.createLinearGradient(0, 0, 0, 520); tg.addColorStop(0, 'rgba(35,69,54,.96)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 520);
+  iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 92px Inter'; ctx.fillStyle = AMBER; ctx.fillText('SETELAN', 40, 220); ctx.fillText('PABRIK', 40, 310);
+  ctx.font = '900 50px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('SEBUAH PERINTAH', 42, 374);
+  ctx.font = '700 26px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kenapa ada yang wajib, sunnah, mubah?', 44, 424);
+  ctx.shadowBlur = 0;
+  drawRifda(130, 1090, 1.1, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+}
+exportEpisode();
+</script>
+</body></html>
