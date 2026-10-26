@@ -95,25 +95,26 @@ It's fiction, but it's built on the Axis powers' own ambitions.
 "Prosperity" cracks.
 
 Japan called its empire the "Greater East Asia Co-Prosperity Sphere". It promised to free Asia
-from Western colonizers. In reality it was just a new colonizer.
+from Western colonizers. In reality it was just a new colonizer, and often a far more brutal one.
 
-[VISUAL] Indonesian workers building a railway under guard.
+[VISUAL] Prisoners and laborers lay track through the jungle under armed guards.
 
-Take Indonesia, where we're from. During the Japanese occupation from 1942 to 1945, hundreds of
-thousands of people were forced into labor as "romusha", and many never came home. Schools taught
-Japanese, and people had to bow toward the Emperor in Tokyo every morning.
+Across Southeast Asia, from Burma to Indonesia, hundreds of thousands of people were forced into
+labor. On the Burma–Thailand "Death Railway" alone, more than 100,000 workers and prisoners of
+war died.
 
-[VISUAL] A Korean family register. Korean names are crossed out and replaced with Japanese ones.
+[VISUAL] A family register. Korean names are crossed out and replaced with Japanese ones.
 
-In Korea it went even further: families were pressured to give up their names and take Japanese
-ones. If Japan had won, that could have been our future too. We might be reading Japanese script
-instead of the alphabet, and carrying names that weren't really ours. Our politics and economy
-would have been run for someone else's benefit.
+In occupied lands, schools taught Japanese, and people had to bow toward the Emperor in Tokyo.
+In Korea, families were even pressured to give up their names and take Japanese ones. If Japan
+had won, that would have been permanent. Hundreds of millions of people would have lived under
+someone else's language, someone else's names, and someone else's rules.
 
-[VISUAL] A calendar flips: 17 August 1945, Indonesia's independence day, tears away and
-disappears.
+[VISUAL] A world map of colonies. The wave of independence movements after 1945 freezes and
+fades away.
 
-And Indonesia's independence in 1945? It might never have happened.
+And the wave of independence that swept Asia after 1945, in countries like Korea, the
+Philippines, Indonesia, Vietnam and India? Much of it might never have happened.
 
 ## 6. Ending (4:30–5:00)
 
@@ -143,8 +144,9 @@ Thanks for watching. Stay curious.
   continued afterwards.
 - The Man in the High Castle (Philip K. Dick, 1962): the map of the US divided into three is
   taken from this novel.
-- Romusha in Indonesia: estimates range from hundreds of thousands to millions of people.
-  "Hundreds of thousands" is the safe figure.
+- Forced labor in Southeast Asia (romusha): estimates range from hundreds of thousands to
+  millions of people. "Hundreds of thousands" is the safe figure.
+- Burma–Thailand Railway: roughly 90,000+ Asian laborers and ~12,000 Allied POWs died.
 - Sōshi-kaimei (Korea, 1940): policy of forcing Koreans to adopt Japanese-style names.
 
 ## Changes from the Kok Bisa version
@@ -155,5 +157,5 @@ Thanks for watching. Stay curious.
   global audience and YouTube's advertiser rules are stricter about Nazi topics.
 - Concrete facts were added (dates, Generalplan Ost, Aktion T4) to build credibility.
 - The writer behind the "divided world" scenario is named (Philip K. Dick).
-- The Indonesia angle is kept as the channel's unique perspective and widened to Korea so it
-  works for viewers outside Indonesia.
+- All Indonesia-specific references ("our country", "where we're from") were removed. The Asia
+  section now covers the whole region so viewers anywhere can relate to it.
