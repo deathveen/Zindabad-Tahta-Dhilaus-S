@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faedah Harian</title>
+<meta name="description" content="Satu faedah sehari, langsung dari kitab yang dikaji. Buku, kitab, dan dukungan dakwah Faedah Harian.">
+<meta property="og:title" content="Faedah Harian">
+<meta property="og:description" content="Satu faedah sehari, langsung dari kitab yang dikaji.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Fraunces:opsz,wght@9..144,600&family=Schibsted+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --latar: #F4EFE6;
+    --kartu: #FBF8F2;
+    --tinta: #1F1B16;
+    --redup: #5E564B;
+    --zaitun: #3E5641;
+    --emas: #B08D57;
+    --garis: #E3D9C8;
+    --tombol-teks: #F4EFE6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --latar: #1C2430;
+      --kartu: #232D3B;
+      --tinta: #F1EBE0;
+      --redup: #B9B1A4;
+      --zaitun: #7FA383;
+      --emas: #C9A774;
+      --garis: #334055;
+      --tombol-teks: #1C2430;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--latar); color: var(--tinta);
+    font: 400 16px/1.55 'Schibsted Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wadah { max-width: 480px; margin: 0 auto; padding: 40px 16px 56px; }
+
+  /* Kepala */
+  header { text-align: center; }
+  .lambang { width: 96px; height: 96px; display: block; margin: 0 auto 16px; }
+  h1 { font: 600 34px/1.1 'Fraunces', serif; letter-spacing: -.5px; }
+  .arab { font: 700 22px/1.4 'Amiri', serif; color: var(--zaitun); margin-top: 4px; }
+  .bio { color: var(--redup); margin-top: 10px; font-size: 15px; }
+  .sosial { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+  .sosial a {
+    font-size: 13px; font-weight: 600; text-decoration: none; color: var(--tinta);
+    border: 1px solid var(--garis); border-radius: 999px; padding: 6px 14px;
+  }
+  .sosial a:hover { border-color: var(--emas); }
+
+  /* Bagian */
+  section { margin-top: 36px; }
+  h2 {
+    font-size: 12px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--emas); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+  }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--garis); }
+
+  .tautan {
+    display: block; text-decoration: none; color: var(--tinta); background: var(--kartu);
+    border: 1px solid var(--garis); border-radius: 14px; padding: 14px 18px; margin-bottom: 10px;
+    font-weight: 600; text-align: center; transition: border-color .15s, transform .15s;
+  }
+  .tautan small { display: block; font-weight: 400; color: var(--redup); font-size: 13px; }
+  .tautan:hover { border-color: var(--emas); transform: translateY(-1px); }
+
+  /* Buku */
+  .buku {
+    display: grid; grid-template-columns: 92px 1fr; gap: 14px; background: var(--kartu);
+    border: 1px solid var(--garis); border-radius: 14px; padding: 14px; margin-bottom: 12px;
+  }
+  .sampul {
+    width: 92px; aspect-ratio: 2 / 3; border-radius: 4px 8px 8px 4px; overflow: hidden;
+    background: #3E5641; color: #F4EFE6; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 8px; font: 600 12px/1.2 'Fraunces', serif;
+    box-shadow: inset 6px 0 0 rgba(0,0,0,.18), inset 0 0 0 3px rgba(176,141,87,.6);
+  }
+  .sampul img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sampul.ada-gambar { padding: 0; box-shadow: none; }
+  .buku h3 { font: 600 17px/1.25 'Fraunces', serif; }
+  .buku p { font-size: 13.5px; color: var(--redup); margin-top: 4px; }
+  .harga { font-weight: 600; margin-top: 8px; }
+  .tombol-baris { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+  .tombol {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
+    padding: 8px 14px; border-radius: 10px; font: 600 14px 'Schibsted Grotesk', sans-serif;
+    text-decoration: none; cursor: pointer; border: 1px solid var(--zaitun);
+  }
+  .tombol.utama { background: var(--zaitun); color: var(--tombol-teks); }
+  .tombol.kedua { background: transparent; color: var(--zaitun); }
+
+  /* Donasi */
+  .donasi { background: var(--kartu); border: 1px solid var(--garis); border-radius: 14px; padding: 20px 18px; }
+  .donasi .ajakan { font: 600 20px/1.3 'Fraunces', serif; text-align: center; }
+  .donasi .dalil { text-align: center; color: var(--redup); font-size: 13.5px; margin-top: 6px; }
+  .qris {
+    width: 220px; max-width: 100%; aspect-ratio: 1; margin: 18px auto 6px; border-radius: 12px;
+    background: #fff; border: 1px solid var(--garis); display: flex; align-items: center;
+    justify-content: center; overflow: hidden; color: #5E564B; font-size: 13px; text-align: center; padding: 12px;
+  }
+  .qris img { width: 100%; height: 100%; object-fit: contain; }
+  .keterangan-qris { text-align: center; font-size: 12.5px; color: var(--redup); }
+  .rekening {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border-top: 1px dashed var(--garis); padding-top: 14px; margin-top: 16px;
+  }
+  .rekening .bank { font-size: 12.5px; color: var(--redup); }
+  .rekening .nomor { font-weight: 600; font-size: 17px; letter-spacing: .5px; }
+  .peruntukan { margin-top: 16px; font-size: 13.5px; color: var(--redup); }
+  .peruntukan ul { margin: 6px 0 0 18px; }
+  .donasi .tombol-baris { justify-content: center; margin-top: 16px; }
+
+  footer { text-align: center; margin-top: 44px; font-size: 13px; color: var(--redup); }
+
+  .notif {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0;
+    background: var(--tinta); color: var(--latar); padding: 10px 16px; border-radius: 999px;
+    font-size: 14px; transition: .2s; pointer-events: none;
+  }
+  .notif.tampil { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<main class="wadah">
+  <header>
+    <svg class="lambang" viewBox="0 0 300 300" aria-hidden="true">
+      <g transform="translate(150 150)">
+        <rect x="-118" y="-118" width="236" height="236" fill="#3E5641"/>
+        <rect x="-118" y="-118" width="236" height="236" fill="#3E5641" transform="rotate(45)"/>
+        <rect x="-104" y="-104" width="208" height="208" fill="none" stroke="#B08D57" stroke-width="5"/>
+        <rect x="-104" y="-104" width="208" height="208" fill="none" stroke="#B08D57" stroke-width="5" transform="rotate(45)"/>
+        <text x="0" y="40" text-anchor="middle" font-family="Amiri, serif" font-weight="700" font-size="150" fill="#F4EFE6">ف</text>
+      </g>
+    </svg>
+    <h1 id="nama"></h1>
+    <div class="arab">فَائِدَةٌ كُلَّ يَوْمٍ</div>
+    <p class="bio" id="bio"></p>
+    <nav class="sosial" id="sosial"></nav>
+  </header>
+
+  <section id="bagian-tautan">
+    <h2>Tautan</h2>
+    <div id="tautan"></div>
+  </section>
+
+  <section id="bagian-buku">
+    <h2>Buku &amp; Kitab</h2>
+    <div id="buku"></div>
+  </section>
+
+  <section id="bagian-donasi">
+    <h2>Dukung Dakwah</h2>
+    <div class="donasi">
+      <p class="ajakan">Bantu faedah ini terus mengalir</p>
+      <p class="dalil">“Barang siapa menunjukkan kepada kebaikan, maka baginya pahala seperti pahala orang yang mengerjakannya.” (HR. Muslim no. 1893)</p>
+      <div class="qris" id="qris"></div>
+      <p class="keterangan-qris">Scan QRIS dengan aplikasi bank atau e-wallet apa pun</p>
+      <div id="rekening"></div>
+      <div class="peruntukan" id="peruntukan"></div>
+      <div class="tombol-baris" id="donasi-lain"></div>
+    </div>
+  </section>
+
+  <footer id="kaki"></footer>
+</main>
+<div class="notif" id="notif" role="status"></div>
+
+<script>
+/* =====================================================================
+   UBAH DATA DI SINI SAJA. Semua isi halaman diambil dari objek ini.
+   Bagian yang dikosongkan ([] atau "") otomatis disembunyikan.
+   ===================================================================== */
+const DATA = {
+  nama: "Faedah Harian",
+  bio: "Satu faedah sehari, langsung dari kitab yang dikaji. Ana juga masih belajar.",
+
+  // Nomor WhatsApp untuk pemesanan, format internasional tanpa + (62...)
+  whatsapp: "6281234567890",
+
+  sosial: [
+    { label: "Instagram", url: "https://instagram.com/faedah.harian" },
+    { label: "YouTube",   url: "https://youtube.com/@faedahharian" },
+    { label: "TikTok",    url: "https://tiktok.com/@faedah.harian" },
+  ],
+
+  tautan: [
+    { judul: "Faedah terbaru", sub: "Postingan hari ini di Instagram", url: "https://instagram.com/faedah.harian" },
+    { judul: "Playlist Pojok Bahasa Arab", sub: "Nahwu & sharaf sekali gigit", url: "https://youtube.com/@faedahharian" },
+    { judul: "Kirim pertanyaan", sub: "Tanya seputar faedah yang dibahas", url: "https://wa.me/6281234567890?text=Assalamu'alaikum%2C%20ana%20mau%20bertanya" },
+  ],
+
+  // gambar: nama file sampul di folder ini (mis. "sampul-1.jpg"), kosongkan untuk sampul otomatis.
+  // beli: tautan marketplace (Shopee/Tokopedia), kosongkan kalau hanya lewat WhatsApp.
+  buku: [
+    {
+      judul: "Ringkasan Al-Ajurrumiyyah",
+      ket: "Kaidah nahwu dasar dengan contoh dari Al-Qur'an. E-book PDF, 64 halaman.",
+      harga: "Rp35.000",
+      gambar: "",
+      beli: "",
+    },
+    {
+      judul: "30 Faedah Adab Penuntut Ilmu",
+      ket: "Kumpulan faedah dari Hilyah Thalibil 'Ilmi. Buku cetak, 120 halaman.",
+      harga: "Rp59.000",
+      gambar: "",
+      beli: "https://shopee.co.id/",
+    },
+  ],
+
+  donasi: {
+    qris: "qris.png",                 // simpan gambar QRIS dengan nama ini di folder yang sama
+    rekening: [
+      { bank: "Bank Syariah Indonesia (BSI)", nomor: "7123456789", atasNama: "Nama Pemilik Rekening" },
+    ],
+    peruntukan: [
+      "Langganan alat desain & penyimpanan",
+      "Pembelian kitab rujukan",
+      "Iklan agar faedah menjangkau lebih banyak orang",
+    ],
+    laporan: "",                      // tautan laporan dana (Google Sheet/Drive), sangat dianjurkan
+    lain: [
+      { label: "Saweria", url: "" },
+      { label: "Trakteer", url: "" },
+    ],
+  },
+
+  kaki: "Share = pahala jariyah. Semoga bermanfaat.",
+};
+
+/* ===================== Kode tampilan (tidak perlu diubah) ===================== */
+const el = (tag, attrs = {}, ...anak) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v);
+  }
+  for (const a of anak) if (a != null && a !== "") n.append(a);
+  return n;
+};
+const luar = url => ({ href: url, target: "_blank", rel: "noopener" });
+const sembunyikanJikaKosong = (id, daftar) => { if (!daftar.length) document.getElementById(id).hidden = true; };
+const linkWA = pesan => `https://wa.me/${DATA.whatsapp}?text=${encodeURIComponent(pesan)}`;
+
+function notif(teks) {
+  const n = document.getElementById("notif");
+  n.textContent = teks; n.classList.add("tampil");
+  clearTimeout(notif.t); notif.t = setTimeout(() => n.classList.remove("tampil"), 1800);
+}
+async function salin(teks) {
+  try { await navigator.clipboard.writeText(teks); }
+  catch {
+    const t = el("textarea"); t.value = teks; document.body.append(t); t.select();
+    document.execCommand("copy"); t.remove();
+  }
+  notif("Nomor rekening disalin");
+}
+
+document.title = DATA.nama;
+document.getElementById("nama").textContent = DATA.nama;
+document.getElementById("bio").textContent = DATA.bio;
+document.getElementById("kaki").textContent = DATA.kaki;
+
+const sosial = DATA.sosial.filter(s => s.url);
+document.getElementById("sosial").append(...sosial.map(s => el("a", luar(s.url), s.label)));
+
+const tautan = DATA.tautan.filter(t => t.url);
+sembunyikanJikaKosong("bagian-tautan", tautan);
+document.getElementById("tautan").append(...tautan.map(t =>
+  el("a", { class: "tautan", ...luar(t.url) }, t.judul, t.sub ? el("small", {}, t.sub) : null)));
+
+sembunyikanJikaKosong("bagian-buku", DATA.buku);
+document.getElementById("buku").append(...DATA.buku.map(b => {
+  const sampul = el("div", { class: "sampul" });
+  if (b.gambar) { sampul.classList.add("ada-gambar"); sampul.append(el("img", { src: b.gambar, alt: "Sampul " + b.judul, loading: "lazy" })); }
+  else sampul.textContent = b.judul;
+  const tombol = el("div", { class: "tombol-baris" },
+    el("a", { class: "tombol utama", ...luar(linkWA(`Assalamu'alaikum, ana mau pesan "${b.judul}" (${b.harga}).`)) }, "Pesan via WhatsApp"),
+    b.beli ? el("a", { class: "tombol kedua", ...luar(b.beli) }, "Beli di marketplace") : null);
+  return el("article", { class: "buku" }, sampul,
+    el("div", {}, el("h3", {}, b.judul), el("p", {}, b.ket), el("div", { class: "harga" }, b.harga), tombol));
+}));
+
+const d = DATA.donasi;
+const qris = document.getElementById("qris");
+if (d.qris) {
+  const img = el("img", { src: d.qris, alt: "QRIS donasi " + DATA.nama });
+  img.addEventListener("error", () => { qris.textContent = "Simpan gambar QRIS sebagai " + d.qris + " di folder ini"; });
+  qris.append(img);
+} else { qris.hidden = true; qris.nextElementSibling.hidden = true; }
+
+document.getElementById("rekening").append(...d.rekening.map(r =>
+  el("div", { class: "rekening" },
+    el("div", {}, el("div", { class: "bank" }, `${r.bank} · a.n. ${r.atasNama}`), el("div", { class: "nomor" }, r.nomor)),
+    el("button", { class: "tombol kedua", type: "button", onclick: () => salin(r.nomor) }, "Salin"))));
+
+if (d.peruntukan.length || d.laporan) {
+  const p = document.getElementById("peruntukan");
+  p.append("Donasi digunakan untuk:", el("ul", {}, ...d.peruntukan.map(x => el("li", {}, x))));
+  if (d.laporan) p.append(el("p", { style: "margin-top:8px" }, el("a", { ...luar(d.laporan), style: "color:var(--zaitun);font-weight:600" }, "Lihat laporan penggunaan dana →")));
+}
+document.getElementById("donasi-lain").append(...d.lain.filter(x => x.url).map(x => el("a", { class: "tombol kedua", ...luar(x.url) }, x.label)));
+</script>
+</body>
+</html>
