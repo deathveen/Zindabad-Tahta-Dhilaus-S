@@ -108,7 +108,7 @@ Pemilik konten mengirim:
 
 ### Tahap 2: Olah VO
 - Bersihkan dengung dan desis ruangan, redam bunyi "s" yang tajam, perjelas suara, dan ratakan volume.
-- **Jernihkan dan percepat VO menjadi 1,2×** sekaligus (`scripts/prep_vo.sh`; `atempo` menjaga nada).
+- **Jernihkan dan percepat VO menjadi 1,25×** sekaligus (`scripts/prep_vo.sh`; `atempo` menjaga nada).
 - **Potong jeda sunyi** yang lebih dari 0,45 detik menjadi 0,28 detik (otomatis di `prep_vo.sh`).
 - **Jangan ubah nada suara Vonya.**
 - Buang kalimat yang salah baca atau diulang (pemilik konten memberi tahu bagian mana).
@@ -135,6 +135,7 @@ Pemilik konten mengirim:
 - Musik instrumental lembut (piano, petikan senar) yang mengikuti suasana babak.
 - Musik **otomatis mengecil saat VO berbicara** (ducking), supaya suara Vonya yang ringan tetap jelas.
 - SFX hanya di momen penting: benda jatuh, transisi, munculnya dalil, momen emosional. Jangan di setiap gerakan.
+- **Pengecualian: hook (detik awal) wajib padat SFX** (boom, pop, ding) + getar/kilat layar, karena VO pembuka cenderung lemas. Musik baru masuk setelah hook.
 
 ### Tahap 7: QC (pemeriksaan)
 Lihat checklist di Bagian 6.

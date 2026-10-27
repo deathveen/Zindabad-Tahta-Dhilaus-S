@@ -24,13 +24,13 @@ Contoh lengkap yang sudah disetujui pemilik akun: `video/ep02/` ("3 Kunci, 1 Pin
 Kerjakan berurutan. Ada **dua titik persetujuan** (Tahap 3 dan 7): di titik itu berhenti dan
 tunggu jawaban pemilik akun, karena revisi setelah render penuh jauh lebih mahal.
 
-### Tahap 0: Jernihkan, percepat VO 1,2×, dan potong jeda sunyi
+### Tahap 0: Jernihkan, percepat VO 1,25×, dan potong jeda sunyi
 
-Pemilik akun ingin suara Vonya **dijernihkan** dan tempo VO **1,2×** untuk semua episode.
+Pemilik akun ingin suara Vonya **dijernihkan** dan tempo VO **1,25×** untuk semua episode (sejak ep05; ep03–ep04 masih 1,2×).
 Lakukan ini paling awal, sebelum transkripsi, lalu pakai file hasilnya (bukan VO asli) di semua tahap berikutnya:
 
 ```bash
-.claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo.wav   # default 1.2
+.claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo.wav   # default 1.25
 ```
 
 Penjernih: perbaiki bagian yang pecah atau "kresek" karena clipping (`declip.py`), buang dengung rendah, kurangi desis, redam
@@ -111,8 +111,14 @@ Di `video/epNN/render.html`:
    `rays`, `sajadah`, `rifdaCorner`, `headline`, `S_outro`, dan lainnya. Daftar lengkap dan
    contohnya ada di `references/engine.md`. HUD yang menetap di atas semua adegan masuk ke
    `drawOverlay(T)`.
-4. **Isi `sfxEvents()`** di momen penting saja. Jangan memberi SFX di setiap gerakan.
-5. **Buat `drawCover()`** yang khusus untuk episode ini: judul besar, subjudul, perumpamaan
+4. **Hook wajib "nendang"** (VO pembuka Vonya cenderung lemas). Di 2–12 detik pertama:
+   - definisikan `HOOK_HITS = [detik, ...]` (layar bergetar + zoom + kilat) dan `HOOK_END`
+     (audio.py menaikkan energi VO pembuka dan menahan musik sampai hook selesai, lalu "drop");
+   - pasang SFX `hook_boom` di kata pertama dan di klaim kejutan, `pop` untuk kartu/teks yang
+     meloncat, `ding` atau `scratch` di pertanyaan ("Kok bisa?"), `riser` menjelang hantaman;
+   - visual hook: judul besar menghantam di detik pertama, kontras tinggi. Contoh: `video/ep05/`.
+5. **Isi `sfxEvents()`** di momen penting saja. Jangan memberi SFX di setiap gerakan.
+6. **Buat `drawCover()`** yang khusus untuk episode ini: judul besar, subjudul, perumpamaan
    utama, dan Rifda.
 
 Sebelum menulis, baca `references/pelajaran.md`. Isinya kesalahan yang sudah pernah terjadi

@@ -171,7 +171,7 @@ def pan_r():
     return rng.uniform(-.6, .6)
 
 
-HITS = sorted(e['t'] for e in meta['events'] if e['type'] in ('end_hit', 'door_open', 'unlock'))
+HITS = sorted(e['t'] for e in meta['events'] if e['type'] in ('end_hit', 'door_open', 'unlock', 'hook_boom'))
 for e in meta['events']:
     t0, k = e['t'], e['type']
     if k == 'riser':  # riser naik sampai hantaman berikutnya

@@ -115,6 +115,7 @@ tersedia; biarkan menjadi adegan terakhir di `VO_END`.
 | Benda | `place` (`k` = 1..5 nada naik), `set_down`, `step`, `fall`, `fall_short`, `impact`, `clank`, `bar` (`i`) |
 | Cahaya dan ajaib | `star` (`i`), `rise` (`i`), `return` (`i`), `sprout`, `leaf_fly`, `leaf_on`, `balance`, `end_hit`, `door_open` |
 | Suasana | `sting` (sumbang/sedih), `eyes`, `alert`, `alarm`, `smudge` (noda gelap), `unlock` (gembok terbuka) |
+| Hook | `hook_boom` (desis naik + boom sinematik; juga sasaran `riser`), `pop`, `ding`, `scratch` (goresan "tunggu dulu"), `tick` |
 
 Contoh: `add(t, 'unlock')` atau `add(t, 'place', { k: 3 })`. Denting otomatis memakai
 pentatonik A minor saat musiknya `pad`.
@@ -127,3 +128,9 @@ pentatonik A minor saat musiknya `pad`.
 - menambahkan SFX dengan sedikit gema.
 
 `finalize.sh` lalu menyetel kerasnya ke -14 LUFS.
+
+## Hook
+
+`HOOK_HITS = [0.4, 9.8]` (sebelum lib.js) memicu getar + zoom + kilat putih di tiap detik itu;
+`hookPunch(T)` (0..1) bisa dipakai adegan untuk efek tambahan. `HOOK_END = 12.5` dikirim ke
+`audio.py`: VO sebelum detik itu dinaikkan ±3 dB dan dicerahkan, musik ditahan ±16 dB lalu masuk.

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Jernihkan lalu percepat VO (default 1.2x) tanpa mengubah nada suara Vonya.
+# Jernihkan lalu percepat VO (default 1.25x) tanpa mengubah nada suara Vonya.
 #   prep_vo.sh vo_asli.ogg vo.wav [kecepatan] [--mentah] [--utuh]
 # Penjernih: perbaiki bagian pecah/kresek (declip.py), buang dengung rendah, kurangi desis,
 # redam "s" tajam, perjelas (presence), ratakan volume, dan heningkan jeda.
 # Terakhir, jeda sunyi > 0,45 dtk dipendekkan jadi 0,28 dtk (potong_jeda.py).
 # --mentah = tanpa penjernih; --utuh = jeda tidak dipotong. Semua tahap berikutnya memakai file hasil ini.
 set -euo pipefail
-IN="$1"; OUT="$2"; SPEED="${3:-1.2}"; MODE=" ${*:4} "
+IN="$1"; OUT="$2"; SPEED="${3:-1.25}"; MODE=" ${*:4} "
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 if [[ "$MODE" == *" --mentah "* ]]; then
