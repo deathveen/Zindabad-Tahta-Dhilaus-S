@@ -59,3 +59,7 @@ render penuh.
   3–6 dB lebih keras dari VO. `audio.py` kini menyetel VO ke -18 dBFS saat bicara, musik ±14 dB
   dan SFX ±8 dB di bawahnya. Cek dengan `STEMS=folder python3 audio.py ...` (menyimpan trek
   VO, musik, SFX terpisah). Hindari `impact` di luar adegan benda pecah: ada bunyi denting kaca.
+- **Hook dengan `hook_boom` bikin video terlalu pelan (ep05: -15,6 LUFS).** Puncak boom
+  menahan `loudnorm`. Perbaiki setelah finalize:
+  `ffmpeg -i x.mp4 -c:v copy -af "aresample=176400,volume=1.7dB,alimiter=limit=0.8:level=false,aresample=44100" ...`
+  lalu ukur ulang (target -14 LUFS, puncak < -1,5 dB).
