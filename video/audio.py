@@ -80,11 +80,17 @@ if vo_path:
     rms = np.sqrt((vo[:nf * fr].mean(axis=1).reshape(nf, fr) ** 2).mean(axis=1))
     speak = rms[rms > np.percentile(rms, 90) * .25]
     vo *= 10 ** (-18 / 20) / (np.sqrt((speak ** 2).mean()) + 1e-9)
+    if 'hook_end' in M:  # VO pembuka sering lemas: naikkan & cerahkan sampai akhir hook
+        he = M['hook_end']; k = np.clip((he + .3 - T) / .3, 0, 1)[:, None]
+        bright = sosfiltfilt(butter(2, 2500, 'high', fs=SR, output='sos'), vo, axis=0)
+        vo = vo + k * (vo * .41 + bright * .5)
     env = np.abs(vo).mean(axis=1)
     k = int(.25 * SR); env = np.convolve(env, np.ones(k) / k, 'same')
     env = np.clip(env / (np.percentile(env, 95) + 1e-9), 0, 1)
     music *= (1 - .75 * env)[:, None]         # ducking: musik mengecil saat ada suara
     music[T > M.get('vo_end', DUR)] *= 1.6    # musik naik di kartu penutup
+    if 'hook_end' in M:  # selama hook musik hampir senyap, lalu "masuk" setelahnya (drop)
+        music *= (.15 + .85 * np.clip((T - M['hook_end']) / .25, 0, 1))[:, None]
 if 'impact' in M:
   # kurva "teredam": masuk saat kritik, paling dalam di malam hari, terbuka lagi saat fajar
   muff = (smooth(ramp(T, M['impact'], M['impact'] + 1.2)) * .85
@@ -257,6 +263,26 @@ for e in meta['events']:
         for j, d in enumerate((0, 2, 4, 7, 9)):
             add(bell(note(d, 5), 3.5, 1.6), t0 + .4 + j * .09, .1)
         add(thud(70, 40, 2.4, .1, .9), t0 + .4, .35)
+    elif k == 'hook_boom':  # hantaman sinematik pembuka: desis naik singkat + boom sub + kilau
+        d = .5; t = tt(d)
+        add(bandnoise(d, 1500, 11000) * (t / d) ** 3, t0 - d, .5)
+        add(thud(70, 28, 2.8, .4, .9), t0, 1.0)
+        add(thud(160, 60, .5, .3, .08), t0, .5)
+        for j, dd in enumerate((0, 4, 7)):
+            add(bell(note(dd, 6), 2.0, .8), t0 + .03 * j, .12, -.4 + .4 * j)
+    elif k == 'pop':  # letupan ceria untuk teks/ikon yang "meloncat"
+        t = tt(.18)
+        add(sweep(260, 980, .18, .6) * np.exp(-t / .05), t0, .45, rng.uniform(-.3, .3))
+    elif k == 'ding':  # notifikasi terang: penarik perhatian
+        add(bell(note(7, 6), 1.4, .45) + .7 * bell(note(9, 6), 1.4, .45), t0, .2)
+        add(bell(note(9, 7), .8, .2), t0 + .12, .08)
+    elif k == 'scratch':  # "tunggu dulu": goresan piringan hitam
+        t = tt(.45)
+        f = 1800 * (1 - .8 * np.sin(np.pi * t / .45))
+        sc = bandnoise(.45, 600, 6000) * (.5 + .5 * np.sin(2 * np.pi * np.cumsum(f) / SR / 40))
+        add(sc * np.hanning(len(t)), t0, .35)
+    elif k == 'tick':  # detak jam (ketegangan)
+        add(np.sin(2 * np.pi * 2400 * tt(.03)) * np.exp(-tt(.03) / .006), t0, .3, .3)
     elif k == 'end_hit':
         add(thud(80, 35, 2.5, .3, .8), t0, .5)
         for j, d in enumerate((0, 2, 4, 7)):

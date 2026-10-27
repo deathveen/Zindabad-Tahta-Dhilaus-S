@@ -244,6 +244,12 @@ function sceneFor(T) { let f = SCENES[0][1]; SCENES.forEach(([a, fn]) => { if (T
 
 // ---------- susunan adegan & frame ----------
 // SCENES = [[detikMulai, fungsiAdegan], ...] urut naik; transisi zoom-blur otomatis di tiap batas.
+// Opsional: HOOK_HITS = [detik, ...] → layar bergetar + zoom + kilat putih (pasangkan dengan SFX 'hook_boom'/'pop');
+//           HOOK_END = detik akhir hook → audio.py menaikkan energi VO dan menahan musik sampai detik ini.
+function hookPunch(T) {
+  if (typeof HOOK_HITS === 'undefined') return 0;
+  return HOOK_HITS.reduce((m, h) => Math.max(m, T >= h ? Math.exp(-(T - h) / .14) : 0), 0);
+}
 const CUT_D = .35;
 const bufs = [0, 1].map(() => { const c = document.createElement('canvas'); c.width = 1080; c.height = 1920; return c; });
 function draw(T) {
@@ -251,7 +257,9 @@ function draw(T) {
   ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   ctx.save();
   ctx.translate(W / 2 + Math.sin(T * .31) * 4, H / 2 + Math.cos(T * .23) * 4); ctx.rotate(Math.sin(T * .17) * .004);
-  const z = 1.03 + .008 * Math.sin(T * .5); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+  const hp = hookPunch(T);
+  if (hp > .01) ctx.translate(Math.sin(T * 97) * 9 * hp, Math.cos(T * 83) * 9 * hp);
+  const z = 1.03 + .008 * Math.sin(T * .5) + .07 * hp; ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
   const cut = SCENES.slice(1).find(([c]) => Math.abs(T - c) < CUT_D);
   if (cut) {
     const i = SCENES.findIndex(([c]) => c === cut[0]), A = SCENES[i - 1][1], Bf = SCENES[i][1];
@@ -260,6 +268,7 @@ function draw(T) {
     blit(renderTo(bufs[1], Bf, T), 1.12 - .12 * k, 14 * (1 - k), k);
   } else blit(renderTo(bufs[0], sceneFor(T), T), 1, 0, 1);
   ctx.restore();
+  if (hp > .01) { ctx.fillStyle = `rgba(255,250,235,${(.45 * hp).toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
   if (typeof drawOverlay === 'function') drawOverlay(T);
   caption(T);
   if (T < VO_END - .3) watermark(.55 * prog(T, .8, 1.6));
@@ -271,6 +280,7 @@ function draw(T) {
 function exportEpisode() {
   window.draw = draw; window.DURATION = DURATION; window.sfxEvents = sfxEvents;
   window.MUSIC = { vo_end: VO_END };
+  if (typeof HOOK_END !== 'undefined') window.MUSIC.hook_end = HOOK_END;
   if (typeof drawCover === 'function') window.drawCover = drawCover;
   if (!/render/.test(location.hash)) {
     const start = performance.now();
