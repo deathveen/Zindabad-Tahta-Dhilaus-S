@@ -3,7 +3,10 @@
 Pakai Whisper medium versi sherpa-onnx yang di-hosting di GitHub Releases (bisa diunduh
 dari container cloud yang memblokir Hugging Face). Model diunduh sekali ke --model-dir.
 
-  python3 -I transcribe.py vo.mp3 out.json [--model-dir DIR] [--min 2.2] [--max 5.5]
+  python3 -I transcribe.py vo.wav out.json [--model-dir DIR] [--min 5] [--max 10]
+
+Potongan 5–10 detik memberi konteks cukup sehingga VO 1,25× tertranskripsi jauh lebih akurat
+(potongan 2–5 detik kacau di ep05). Timing caption lalu dipecah memakai scripts/jeda.py.
 
 Audio dipotong di titik paling hening antara --min dan --max detik, lalu tiap potongan
 ditranskripsi. Hasil: [{"start", "end", "text"}, ...] + dicetak ke layar.
@@ -13,7 +16,7 @@ import argparse, json, os, subprocess, sys, tarfile
 ap = argparse.ArgumentParser()
 ap.add_argument('audio'); ap.add_argument('out')
 ap.add_argument('--model-dir', default=os.path.expanduser('~/.cache/faedah-asr'))
-ap.add_argument('--min', type=float, default=2.2); ap.add_argument('--max', type=float, default=5.5)
+ap.add_argument('--min', type=float, default=5); ap.add_argument('--max', type=float, default=10)
 ap.add_argument('--lang', default='id')
 a = ap.parse_args()
 

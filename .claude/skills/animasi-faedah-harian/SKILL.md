@@ -10,8 +10,11 @@ Skill ini mengubah **VO** (biasanya suara Vonya) menjadi video animasi siap ungg
 sudah tercatat di `video/SOP.md`. Baca SOP itu sekali di awal sesi, karena itu yang membuat
 video konsisten sebagai satu seri.
 
-Contoh lengkap yang sudah disetujui pemilik akun: `video/ep02/` ("3 Kunci, 1 Pintu"). Jadikan
-`video/ep02/render.html` rujukan utama untuk pola adegan, dan **jangan diubah**.
+**Rujukan baku: `video/ep05/` ("Jembatan Kewajiban")**, episode yang dinilai pemilik akun paling
+bagus. Tiru polanya: VO 1,25× tanpa jeda panjang, **hook yang nendang** (boom, getar, kilat, cap,
+"KOK BISA?"), satu perumpamaan utama, contoh nyata dengan dalil, penutup dengan ajakan komentar,
+dan kartu follow saat Vonya mengajak follow. `new_episode.py` sudah membuat kerangka berpola ep05.
+Episode lama (`ep02`–`ep04`) jangan diubah; ep02 masih memakai salinan mesin lamanya sendiri.
 
 ## Bahan yang dibutuhkan
 
@@ -21,8 +24,10 @@ Contoh lengkap yang sudah disetujui pemilik akun: `video/ep02/` ("3 Kunci, 1 Pin
 
 ## Alur kerja
 
-Kerjakan berurutan. Ada **dua titik persetujuan** (Tahap 3 dan 7): di titik itu berhenti dan
-tunggu jawaban pemilik akun, karena revisi setelah render penuh jauh lebih mahal.
+Kerjakan berurutan. Titik persetujuan ada di Tahap 3 (storyboard) dan Tahap 7 (hasil render).
+Pemilik akun biasanya meminta **langsung dianimasikan** ("gas", "lalu animasikan"): kalau begitu,
+lewati penantian di Tahap 3 dan sertakan storyboard sebagai tabel alur saat menyerahkan hasil.
+Tetap berhenti dan bertanya bila ada keraguan dalil (Tahap 2).
 
 ### Tahap 0: Jernihkan, percepat VO 1,25×, dan potong jeda sunyi
 
@@ -49,12 +54,16 @@ ketukan atau volume saja.** Pernah terjadi: sebuah VO dikira musik instrumental,
 animasinya tidak nyambung sama sekali dengan isinya. Selalu transkripsi dulu:
 
 ```bash
-python3 -I .claude/skills/animasi-faedah-harian/scripts/transcribe.py vo.mp3 transkrip.json
+python3 -I .claude/skills/animasi-faedah-harian/scripts/transcribe.py vo.wav transkrip.json
+python3 -I .claude/skills/animasi-faedah-harian/scripts/jeda.py vo.wav     # titik jeda untuk caption
 ```
 
 - Unduhan model Whisper medium sekitar 1,9 GB, sekali saja, dari GitHub (tembus jaringan cloud).
 - Transkripsi berjalan sekitar 3 menit untuk VO 90 detik.
-- Hasilnya per frasa (2–5,5 detik) beserta waktunya. Inilah dasar timing caption.
+- Potongan default 5–10 detik: pada VO 1,25× potongan pendek (2–5 detik) hasilnya kacau, potongan
+  panjang jauh lebih akurat (ep05). Untuk bagian yang masih kacau, transkripsi ulang potongan itu
+  saja (`ffmpeg -ss A -t D` lalu `transcribe.py ... --min 4 --max 11`).
+- Pecah caption di titik jeda dari `jeda.py`; caption 2 baris maksimal.
 - VO bisa campur bahasa Inggris. Bagian berbahasa Inggris diterjemahkan di caption.
 - Bagian yang transkripsinya kacau: rapikan sesuai makna dan **sebutkan detiknya ke pemilik
   akun** saat menyerahkan hasil.
@@ -88,12 +97,13 @@ Pedoman:
 ### Tahap 4: Kerangka episode
 
 ```bash
-python3 -I .claude/skills/animasi-faedah-harian/scripts/new_episode.py video ep03 vo.mp3 \
-  --judul "Judul Pendek" --kecil "Teks Kecil di Atas" --transkrip transkrip.json
+python3 -I .claude/skills/animasi-faedah-harian/scripts/new_episode.py video ep06 vo.wav \
+  --judul "Judul Pendek" --kecil "Kaidah Ushul Fiqih #4" --transkrip transkrip.json
 ```
 
-Skrip ini membuat `video/ep03/`:
-- `render.html`: adegan contoh, caption mentah dari transkrip, dan kartu follow.
+Skrip ini membuat `video/ep06/`:
+- `render.html`: kerangka pola ep05 (hook, kaidah, kartu follow), caption mentah dari transkrip,
+  `VO_END` otomatis di kalimat ajakan follow, `HOOK_END`/`HOOK_HITS` awal yang harus dicek.
 - `vo_env.js`: amplop suara untuk gerak mulut Rifda.
 - `cover.js`
 
@@ -121,6 +131,18 @@ Di `video/epNN/render.html`:
 6. **Buat `drawCover()`** yang khusus untuk episode ini: judul besar, subjudul, perumpamaan
    utama, dan Rifda.
 
+Struktur adegan ep05 yang terbukti bagus (sesuaikan dengan isi VO):
+
+| Bagian | Isi | Komponen |
+|---|---|---|
+| Hook (0–±12 dtk) | judul menghantam, contoh berlabel "?", cap kejutan, "KOK BISA?" | `HOOK_HITS`, `hook_boom`, `pop`, `riser`, `ding`, `stempel`, `pil` |
+| Kaidah/dalil | headline + `dalilCard` teks Arab terverifikasi | `rifdaAt(..., 'chest')` |
+| Perumpamaan | satu benda yang mengikat seluruh video (ep05: jembatan) | gambar sendiri, `stempel` "IKUT WAJIB" |
+| Contoh nyata | kitab terbuka → dalil → ilustrasi proses | `kitab`, `dalilCard`, `pil`, `stempel` |
+| Contoh kedua | situasi sehari-hari, dicoret/dicap | `stempel`, Dafa |
+| Penutup | perumpamaan diulang + ajakan komentar | `rifdaAt(..., 'point')` |
+| Follow | dari `VO_END` | `S_follow` (Rifda ikut bicara) |
+
 Sebelum menulis, baca `references/pelajaran.md`. Isinya kesalahan yang sudah pernah terjadi
 (bentrok nama variabel, label yang menabrak caption, dan sebagainya).
 
@@ -146,10 +168,12 @@ Perbaiki dulu sebelum render penuh.
   "$PWD/video/epNN/<judul>.mp4" [musik.mp3|pad]
 ```
 
-- Render 4 proses paralel memakan sekitar 2–3 menit. Jalankan sebagai proses latar belakang
+- Render 4 proses paralel memakan sekitar 2–4 menit. Jalankan sebagai proses latar belakang
   (`run_in_background`).
-- Hasilnya: MP4 (-14 LUFS), `cover.png`, dan contact sheet. Lihat contact sheet-nya dulu.
-- Kirim MP4 dan cover ke pemilik akun lewat `SendUserFile`.
+- Hasilnya: MP4 (-14 LUFS, dikoreksi otomatis walau ada boom hook), `cover.png`, dan contact sheet.
+  Lihat contact sheet-nya dulu.
+- Kirim juga potongan audio hook (13 detik pertama) supaya pemilik akun bisa menilai hook cepat.
+- Kirim MP4, cover, dan audio hook ke pemilik akun lewat `SendUserFile`.
 - Serahkan dengan **tabel alur** (waktu, isi VO, visual), catatan caption yang tidak yakin
   (sebutkan detiknya), dan catatan dalil.
 - Tunggu penilaian dan kerjakan revisinya.
@@ -166,4 +190,5 @@ Perbaiki dulu sebelum render penuh.
 - `video/SOP.md`: semua keputusan gaya, karakter, adab, palet, branding, dan checklist QC.
 - `references/engine.md`: API mesin, karakter, pose, tipe SFX, dan pola adegan.
 - `references/pelajaran.md`: kesalahan yang pernah terjadi dan cara menghindarinya.
-- `video/ep02/render.html`: contoh episode lengkap yang disetujui.
+- `video/ep05/render.html`: **rujukan baku** (paling bagus menurut pemilik akun).
+- `video/ep02/`–`ep04/`: episode lama yang sudah disetujui; jangan diubah.

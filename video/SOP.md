@@ -20,7 +20,8 @@ keputusan baru.
 | Akun | **Faedah Harian** · `@faedahharian.official` (lihat Bagian 9) |
 | Ajakan follow | "Follow @faedahharian.official, teman belajar & pengingat harianmu" |
 
-Contoh hasil: `seratus-bintang-satu-batu.mp4`. Lembar desain karakter: `karakter/lembar-desain.png`.
+Contoh hasil: `seratus-bintang-satu-batu.mp4`. **Rujukan baku (paling bagus): `ep05/jembatan-kewajiban.mp4`.**
+Lembar desain karakter: `karakter/lembar-desain.png`.
 
 ---
 
@@ -271,4 +272,4 @@ cek frame → render final (persetujuan) → simpan ke `main`.
 
 - Transkripsi VO kini bisa dilakukan di cloud (Whisper medium dari GitHub Releases), jadi teks
   naskah tidak lagi wajib, tapi tetap disarankan untuk istilah Arab.
-- Mesin bersama: `video/engine/lib.js`. Contoh episode yang disetujui: `video/ep02/`.
+- Mesin bersama: `video/engine/lib.js`. Rujukan baku: `video/ep05/` (pola hook, perumpamaan, contoh, penutup).

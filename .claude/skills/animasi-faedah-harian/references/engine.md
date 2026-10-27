@@ -76,6 +76,20 @@ Pose shalat:
 | `footnote(teks atau [baris], T, mulai, selesai, y=1188)` | sumber kecil di bawah |
 | `dalilCard(T, mulai, 'HEADER', [baris Arab], [baris terjemahan], 'sumber', { y, h, arabSize, bg })` | kartu ayat/hadis. Font Arab FreeSerif. `bg` gelap pekat (misalnya `'rgba(16,20,52,.94)'`) bila di belakangnya ada benda lain |
 
+## Komponen ep05 (di lib.js; episode boleh menimpa dengan nama sama)
+
+| Fungsi | Kegunaan |
+|---|---|
+| `stempel(x, y, k, 'WAJIB!', warna, size=40, rot=-.18)` | cap miring yang menghantam; `k = prog(T, a, a + .25)` |
+| `pil(x, y, k, 'LABEL', bg, fg='#fff', size=20)` | kapsul label yang meloncat |
+| `rifdaAt(T, x, a, b, arms, s=.82)` | Rifda masuk dari kiri ke x, bicara mengikuti VO, keluar di b |
+| `kitab(x, y, s, openK, ['BAB WUDHU', 'بَابُ الْوُضُوءِ'])` | kitab Bulughul Maram tertutup → terbuka di bab |
+| `S_follow(T)` | kartu follow + Rifda yang mulutnya bergerak (pakai bila ajakan follow masih diucapkan) |
+| `hexA(warna, alpha)` | warna hex → rgba |
+| `hookPunch(T)` | 0..1 tepat setelah tiap `HOOK_HITS` (untuk efek tambahan di adegan hook) |
+
+**Jangan** mendeklarasikan `const` dengan nama fungsi di atas di halaman episode (bentrok).
+
 ## Latar dan efek
 
 | Fungsi | Kegunaan |

@@ -240,6 +240,55 @@ function S_outro(T) {
   ctx.font = '800 28px Inter'; ctx.fillStyle = B.daunGelap; ctx.fillText('+ Follow', 0, 10);
   ctx.restore();
 }
+// ---------- komponen ep05 (rujukan baku); episode boleh menimpa dengan fungsi bernama sama ----------
+function hexA(c, a) { const [r, g, b] = hex(c); return `rgba(${r},${g},${b},${a})`; }
+// stempel miring yang menghantam (k 0..1 = progres masuk)
+function stempel(x, y, k, lab, col, size = 40, rot = -.18) {
+  if (k <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); const s = 1 + 1.4 * (1 - easeOut(clamp(k))); ctx.scale(s, s); ctx.globalAlpha = clamp(k * 3);
+  ctx.font = `900 ${size}px Inter`; const w = ctx.measureText(lab).width + 40;
+  ctx.fillStyle = 'rgba(255,253,247,.94)'; roundRect(-w / 2, -size * .85, w, size * 1.7, 12); ctx.fill();
+  ctx.strokeStyle = col; ctx.lineWidth = 5; ctx.stroke(); ctx.textAlign = 'center'; ctx.fillStyle = col; ctx.fillText(lab, 0, size * .36); ctx.restore();
+}
+// kapsul label yang meloncat
+function pil(x, y, k, lab, bg, fg = '#fff', size = 20) {
+  if (k <= 0) return;
+  ctx.save(); ctx.translate(x, y); const s = backOut(clamp(k)); ctx.scale(s, s); ctx.globalAlpha = clamp(k * 2);
+  ctx.font = `900 ${size}px Inter`; const w = ctx.measureText(lab).width + 36;
+  ctx.fillStyle = bg; roundRect(-w / 2, -size * .95, w, size * 1.9, size * .95); ctx.fill();
+  ctx.textAlign = 'center'; ctx.fillStyle = fg; ctx.fillText(lab, 0, size * .36); ctx.restore();
+}
+// Rifda masuk dari kiri ke x (tanah 905), bicara mengikuti VO, keluar di b
+function rifdaAt(T, x, a, b, arms, s = .82) {
+  const rin = easeOut(prog(T, a, a + .7)), rout = easeIn(prog(T, b - .5, b));
+  if (rin <= 0 || rout >= 1) return;
+  drawRifda(lerp(x - 240, x, rin) - 260 * rout, 905, s, { arms, talk: talkVO(T), look: .5, label: prog(T, a + .4, a + .8) * (1 - prog(T, a + 2.6, a + 3)) });
+}
+// kitab (default Bulughul Maram): tertutup → terbuka di halaman bab ['BAB WUDHU', 'بَابُ الْوُضُوءِ']
+function kitab(x, y, s, openK, bab = ['', ''], judul = ['بُلُوغُ الْمَرَامِ', 'BULUGHUL MARAM']) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(0, 70, 220, 18, 0, 0, 6.28); ctx.fill();
+  if (openK < .5) {
+    const sc = 1 - openK * 2;
+    ctx.fillStyle = '#6B2E2A'; roundRect(-120, -150, 240, 220, 10); ctx.fill();
+    ctx.save(); ctx.scale(Math.max(.05, sc), 1); ctx.fillStyle = '#8C3B2E'; roundRect(-120, -160, 240, 220, 10); ctx.fill();
+    ctx.strokeStyle = '#D8B25A'; ctx.lineWidth = 3; roundRect(-100, -140, 200, 180, 6); ctx.stroke();
+    ctx.font = '700 34px FreeSerif'; ctx.textAlign = 'center'; ctx.fillStyle = '#F2D58A'; ctx.fillText(judul[0], 0, -50);
+    ctx.font = '800 14px Inter'; ctx.fillText(judul[1], 0, -10); ctx.restore();
+  } else {
+    ctx.fillStyle = '#8C3B2E'; roundRect(-230, -150, 460, 220, 10); ctx.fill();
+    ctx.fillStyle = '#FBF5EA'; roundRect(-220, -142, 216, 204, 6); ctx.fill(); roundRect(4, -142, 216, 204, 6); ctx.fill();
+    ctx.fillStyle = 'rgba(42,34,51,.18)'; for (let i = 0; i < 6; i++) { ctx.fillRect(-200, -100 + i * 24, 176, 6); ctx.fillRect(24, -100 + i * 24, i === 5 ? 90 : 176, 6); }
+    ctx.font = '800 15px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#8C3B2E'; ctx.fillText(bab[0], -112, -118); ctx.font = '700 18px FreeSerif'; ctx.fillText(bab[1], 112, -116);
+  }
+  ctx.restore();
+}
+// kartu follow saat Vonya masih mengajak follow: S_outro + Rifda yang mulutnya bergerak
+function S_follow(T) {
+  S_outro(T);
+  const rk = easeOut(prog(T, VO_END + .5, VO_END + 1.3));
+  drawRifda(W / 2, 906 + (1 - rk) * 80, 1.45, { arms: 'wave', mood: 1, talk: talkVO(T) });
+}
 function sceneFor(T) { let f = SCENES[0][1]; SCENES.forEach(([a, fn]) => { if (T >= a) f = fn; }); return f; }
 
 // ---------- susunan adegan & frame ----------

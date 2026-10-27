@@ -8,54 +8,86 @@
 <script src="vo_env.js"></script>
 <script>
 // Faedah Harian · __JUDUL__
-// Waktu animasi = waktu VO (detik). Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+// Pola mengikuti ep05 (rujukan baku). Waktu animasi = waktu VO (detik; VO sudah 1.25x dan jeda dipotong).
+// Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
 const W = 720, H = 1280, SS = 1.5;
-const VO_END = __VO_END__, DURATION = VO_END + 3.6;   // +3,6 detik untuk kartu follow
+const VO_END = __VO_END__, DURATION = __DURATION__;   // VO_END = mulai kalimat ajakan follow → kartu follow
+const HOOK_HITS = [0.42, __HOOK_KLAIM__], HOOK_END = __HOOK_END__;   // hook: kata pertama + klaim kejutan; akhir hook
 const cv = document.getElementById('c'); ctx = cv.getContext('2d');
 let NT = 0;
 </script>
 <script src="../engine/lib.js"></script>
 <script>
-// ---------- naskah: [mulai, selesai, 'teks *kata kunci*'] mengikuti VO ----------
+// ---------- naskah: [mulai, selesai, 'teks *kata kunci*'] ----------
+// Rapikan dari transkrip; pecah di titik jeda (scripts/jeda.py); maks ±2 baris; caption berhenti di VO_END.
 const CAPTIONS = __CAPTIONS__;
 
+// ---------- elemen episode ----------
+const HIJAU = '#4E8B5F', MERAH = '#E2574C', EMAS = '#F2B544';
+function ruang(T, warm = 0) {
+  sky([[0, mix('#E8F1F6', '#FFF1DA', warm)], [1, mix('#C9DDE8', '#F4D9AE', warm)]]);
+  particles(T, 'rgba(255,214,140,1)', 18, 19, .3);
+  ctx.fillStyle = mix('#7E9FB4', '#C98E5A', warm); ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, 884, W, 4);
+}
+
 // ---------- adegan ----------
-// Ganti adegan contoh ini dengan adegan dari storyboard. Lihat ../ep02/render.html sebagai contoh lengkap.
+// HOOK (0 .. HOOK_END): latar gelap kontras, judul menghantam di detik pertama, contoh dengan label "?",
+// cap besar di klaim kejutan, pertanyaan ("KOK BISA?") meloncat. Rifda menyapa sebentar.
 function S_hook(T) {
-  sky([[0, '#0B1030'], [.6, '#1E2452'], [1, '#2A2350']]);
-  twinkle(T, 1);
-  hills([{ y: 900, a: 10, f: .008, p: 1, c: '#161838' }], T);
-  headline('__JUDUL_KECIL__', ['__JUDUL_BESAR__'], T, .4, 0, { y: 190, size: 64 });
-  const rin = easeOut(prog(T, .4, 1.2));
-  drawRifda(lerp(-140, 200, rin), 905, 1.1, { arms: T > 1 && T < 2.4 ? 'wave' : 'point', talk: talkVO(T), label: prog(T, 1, 1.4), look: .5 });
+  sky([[0, '#14324A'], [1, '#1E4A5E']]);
+  rays(W / 2, 420, 40, 900, 18, .25 + .3 * hookPunch(T), '120,200,255', T * .15);
+  particles(T, 'rgba(200,235,255,1)', 26, 5, .8);
+  ctx.fillStyle = '#10283A'; ctx.fillRect(0, 884, W, H);
+  const hk = backOut(prog(T, .42, .75)), hout = prog(T, HOOK_HITS[1] - 1, HOOK_HITS[1] - .6);
+  if (hk > 0 && hout < 1) {
+    ctx.save(); ctx.globalAlpha = 1 - hout; ctx.translate(W / 2, 250); ctx.scale(hk, hk);
+    ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 20;
+    ctx.font = '900 30px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('__JUDUL_KECIL__', 0, -40);
+    ctx.font = '900 76px Inter'; ctx.fillStyle = AMBER; ctx.fillText('__JUDUL_BESAR__', 0, 46); ctx.restore();
+  }
+  stempel(W / 2, 520, prog(T, HOOK_HITS[1], HOOK_HITS[1] + .25), 'GANTI: KLAIM!', MERAH, 44, -.12);
+  const kb = backOut(prog(T, HOOK_END - .8, HOOK_END - .55));
+  if (kb > 0) { ctx.save(); ctx.translate(W / 2, 720); ctx.scale(kb, kb); ctx.rotate(-.05); ctx.fillStyle = AMBER; roundRect(-170, -48, 340, 96, 30); ctx.fill(); ctx.font = '900 52px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#14324A'; ctx.fillText('KOK BISA?', 0, 18); ctx.restore(); }
+  const rin = easeOut(prog(T, .5, 1.2)), rout = easeIn(prog(T, 5.0, 5.5));
+  if (rout < 1) drawRifda(lerp(-140, 130, rin) - rout * 300, 905, 1.0, { arms: 'point', talk: talkVO(T), label: prog(T, 1, 1.4) * (1 - prog(T, 4, 4.4)), look: .5 });
 }
-function S_isi(T) {
-  sky([[0, '#FFF4DA'], [1, '#EFC98C']]);
-  hills([{ y: 884, a: 6, f: .01, p: 4, c: '#4E8B5F' }], T);
-  ctx.fillStyle = '#2F6247'; ctx.fillRect(0, 900, W, H);
-  drawDafa(360, 882, .95, { t: T, mood: .6, arms: 'fold' });
+// KAIDAH / DALIL: headline + dalilCard (teks Arab dari sumber terverifikasi!) + Rifda pose chest
+function S_kaidah(T) {
+  const t0 = HOOK_END;
+  ruang(T, .6);
+  const g = ctx.createRadialGradient(W / 2, 470, 30, W / 2, 470, 460); g.addColorStop(0, 'rgba(255,236,180,.6)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  headline('RAHASIANYA DI', ['GANTI JUDUL'], T, t0 + .2, 0, { y: 150, size: 46, bigColor: B.daunGelap, smallColor: '#7A6A5C' });
+  dalilCard(T, t0 + 2.5, 'GANTI SUMBER', ['ganti teks arab'], ['“Ganti terjemahan.”'], 'Ganti keterangan', { y: 350, h: 300, arabSize: 42, bg: 'rgba(35,69,54,.95)' });
+  rifdaAt(T, 92, t0 + .2, VO_END - .2, 'chest');
 }
-const SCENES = [[0, S_hook], [__CUT_ISI__, S_isi], [VO_END, S_outro]];
+// Tambahkan adegan isi: perumpamaan utama (ep05: jembatan), contoh nyata (kitab + dalilCard), contoh kedua,
+// penutup (perumpamaan diulang + ajakan komentar). Lihat ../ep05/render.html.
+
+const SCENES = [[0, S_hook], [HOOK_END, S_kaidah], [VO_END, S_follow]];
 
 // efek suara (detik video) untuk audio.py; tipe yang tersedia ada di references/engine.md
 function sfxEvents() {
   const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
-  add(.3, 'title'); add(.5, 'whoosh_soft');
-  SCENES.slice(1).forEach(([c]) => add(c - .6, 'whoosh'));
+  // hook: boom di kata pertama, riser → boom di klaim kejutan, ding + pop di pertanyaan
+  add(HOOK_HITS[0], 'hook_boom'); add(HOOK_HITS[1] - .55, 'riser'); add(HOOK_HITS[1], 'hook_boom');
+  add(HOOK_END - .8, 'ding'); add(HOOK_END - .8, 'pop');
+  SCENES.slice(2).forEach(([c]) => add(c - .6, 'whoosh'));
+  add(HOOK_END - .5, 'whoosh_soft'); add(HOOK_END + .2, 'title'); add(HOOK_END + 2.5, 'title');
   add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
   return ev.sort((a, b) => a.t - b.t);
 }
-// cover Reels (gambar diam untuk grid profil)
+// cover Reels: judul besar berupa pertanyaan/klaim, subjudul, perumpamaan utama, Rifda menunjuk
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  sky([[0, '#0B1030'], [.6, '#1E2452'], [1, '#2A2350']]); twinkle(3, 1);
-  hills([{ y: 900, a: 10, f: .008, p: 1, c: '#161838' }], 3);
-  drawRifda(170, 1050, 1.15, { arms: 'point', look: .6, mood: 1 });
-  const g = ctx.createLinearGradient(0, 0, 0, 560); g.addColorStop(0, 'rgba(11,16,48,.95)'); g.addColorStop(1, 'rgba(11,16,48,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, 560);
+  ruang(3, .3);
+  const tg = ctx.createLinearGradient(0, 0, 0, 560); tg.addColorStop(0, 'rgba(20,50,74,.96)'); tg.addColorStop(1, 'rgba(20,50,74,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 560);
   iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
-  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18; ctx.font = '900 92px Inter'; ctx.fillStyle = AMBER;
-  ctx.fillText('__JUDUL_BESAR__', 40, 250); ctx.shadowBlur = 0;
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 76px Inter'; ctx.fillStyle = AMBER; ctx.fillText('__JUDUL_BESAR__', 40, 230);
+  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('__JUDUL_KECIL__', 44, 290);
+  ctx.shadowBlur = 0;
+  drawRifda(110, 1150, 1.05, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
 }
 exportEpisode();
 </script>

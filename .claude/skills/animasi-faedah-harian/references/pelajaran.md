@@ -60,6 +60,11 @@ render penuh.
   dan SFX ±8 dB di bawahnya. Cek dengan `STEMS=folder python3 audio.py ...` (menyimpan trek
   VO, musik, SFX terpisah). Hindari `impact` di luar adegan benda pecah: ada bunyi denting kaca.
 - **Hook dengan `hook_boom` bikin video terlalu pelan (ep05: -15,6 LUFS).** Puncak boom
-  menahan `loudnorm`. Perbaiki setelah finalize:
-  `ffmpeg -i x.mp4 -c:v copy -af "aresample=176400,volume=1.7dB,alimiter=limit=0.8:level=false,aresample=44100" ...`
-  lalu ukur ulang (target -14 LUFS, puncak < -1,5 dB).
+  menahan `loudnorm`. Sekarang `finalize.sh` mengukur ulang dan mengoreksi otomatis
+  (naikkan + limiter) bila meleset lebih dari 0,4 dB.
+- **Transkripsi VO 1,25× dengan potongan pendek kacau (ep05).** Default `transcribe.py` kini
+  5–10 detik; caption dipecah di titik jeda dari `jeda.py`.
+- **Emoji tidak tampil** di Chromium headless (font tidak ada). Jangan pakai emoji di kanvas.
+- **Label menempel di judul** (ep05: RIBA/AKAD HARAM di bawah "BUKA USAHA"). Beri jarak ±90 px
+  di bawah baris judul terakhir.
+- **Pemilik akun lebih suka langsung dianimasikan**; storyboard disertakan saat menyerahkan hasil.
