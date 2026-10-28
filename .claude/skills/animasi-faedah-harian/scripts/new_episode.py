@@ -27,7 +27,23 @@ if a.transkrip:
 else:
     caps = [[0.2, min(3.0, dur), 'TODO: isi caption dari naskah']]
 # VO_END = mulai kalimat ajakan follow (kartu follow tampil saat Vonya mengucapkannya)
-vo_end = next((c[0] for c in caps if 'follow' in c[2].lower()), dur)
+fol = next((c for c in caps if 'follow' in c[2].lower()), None)
+vo_end = fol[0] if fol else dur
+if fol and fol[1] - fol[0] > 5:
+    # potongan panjang: ajakan follow biasanya kalimat terakhir → pakai jeda (>= 0,25 dtk) terakhir
+    # yang berakhir paling lambat 2 detik sebelum ujung potongan (ep06: 51,65 → 57,0)
+    import numpy as np, soundfile as sf
+    y, sr = sf.read(a.vo, always_2d=True); y = y.mean(1); w = int(sr * .02); n = len(y) // w
+    db = 20 * np.log10(np.sqrt((y[:n * w].reshape(n, w) ** 2).mean(1)) + 1e-9); q = db < (np.percentile(db, 90) - 26)
+    gaps, i = [], 0
+    while i < n:
+        if q[i]:
+            j = i
+            while j < n and q[j]: j += 1
+            if (j - i) * .02 >= .25 and fol[0] < j * .02 <= fol[1] - 2: gaps.append(j * .02)
+            i = j
+        else: i += 1
+    if gaps: vo_end = round(gaps[-1] - .15, 2)
 caps = [c for c in caps if c[0] < vo_end]
 cap_js = '[\n' + ''.join(f'  [{s:.2f}, {e:.2f}, {json.dumps(t, ensure_ascii=False)}],\n' for s, e, t in caps) + ']'
 html = open(os.path.join(here, '..', 'assets', 'template.html')).read()
