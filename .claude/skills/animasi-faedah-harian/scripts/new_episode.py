@@ -40,10 +40,11 @@ if fol and fol[1] - fol[0] > 5:
         if q[i]:
             j = i
             while j < n and q[j]: j += 1
-            if (j - i) * .02 >= .25 and fol[0] < j * .02 <= fol[1] - 2: gaps.append(j * .02)
+            if (j - i) * .02 >= .15 and fol[0] + 1 < i * .02 and j * .02 <= fol[1] - 2: gaps.append(j * .02)
             i = j
         else: i += 1
-    if gaps: vo_end = round(gaps[-1] - .15, 2)
+    # kalimat ajakan follow ±3,8 detik (VO 1,25x): pilih jeda yang sisa durasinya paling dekat ke situ
+    if gaps: vo_end = round(min(gaps, key=lambda g: abs(fol[1] - g - 3.8)) - .15, 2)
 caps = [c for c in caps if c[0] < vo_end]
 cap_js = '[\n' + ''.join(f'  [{s:.2f}, {e:.2f}, {json.dumps(t, ensure_ascii=False)}],\n' for s, e, t in caps) + ']'
 html = open(os.path.join(here, '..', 'assets', 'template.html')).read()

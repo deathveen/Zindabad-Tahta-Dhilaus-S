@@ -1,0 +1,197 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="../branding/brand.js"></script>
+<script src="vo_env.js"></script>
+<script>
+// Faedah Harian · "Lampu Larangan" (kaidah: al-aṣlu fin-nahyi lit-taḥrīm).
+// Pola mengikuti ep05. Waktu animasi = waktu VO (detik; VO sudah 1.25x dan jeda dipotong).
+// Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+const W = 720, H = 1280, SS = 1.5;
+const VO_END = 75.0, DURATION = 80.86;   // VO_END = mulai kalimat ajakan follow → kartu follow
+const HOOK_HITS = [0.42, 8.6], HOOK_END = 17.02;   // hook: "sama-sama dilarang" + "cuma makruh?"; "tapi kok" = drop
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+let NT = 0;
+</script>
+<script src="../engine/lib.js"></script>
+<script>
+// ---------- naskah ----------
+const CAPTIONS = [
+  [0.56, 4.34, 'Pernah bingung nggak? Sama-sama *dilarang* di dalam dalil,'],
+  [4.44, 8.42, 'tapi kenapa *berzina* dan *makan riba* itu hukumnya *haram*, sedangkan'],
+  [8.6, 11.06, 'makan dan minum sambil berdiri hukumnya cuma *makruh*?'],
+  [11.38, 13.56, 'Padahal kalau kita baca hadisnya,'],
+  [13.88, 16.7, 'Rasulullah ﷺ *melarang minum sambil berdiri*.'],
+  [17.02, 20.4, 'Tapi, kok para ulama nggak menghukuminya *haram*'],
+  [20.4, 23.6, 'dan dosa besar seperti zina atau mencuri?'],
+  [23.76, 26.32, 'Jawabannya ada pada *kaidah fiqih* ini:'],
+  [26.74, 28.9, '*Al-aṣlu fin-nahyi lit-taḥrīm.*'],
+  [29.02, 32.28, 'Hukum asal dari sebuah *larangan*'],
+  [32.44, 36.32, 'adalah *haram*, sampai ada dalil atau petunjuk lain'],
+  [36.46, 38.5, 'yang memalingkannya menjadi *makruh*.'],
+  [38.94, 43.3, 'Ketika Allah melarang *zina*, *riba*, atau memakan *harta anak yatim*,'],
+  [43.62, 47.16, 'tidak ada satu pun dalil lain yang meringankan larangan tersebut.'],
+  [47.58, 51.92, 'Maka hukumnya *terkunci* di posisi asalnya, yaitu *mutlak haram*.'],
+  [52.22, 54.6, 'Berbeda dengan larangan *minum sambil berdiri*.'],
+  [54.96, 57.06, 'Di hadis lain yang shahih, Rasulullah ﷺ'],
+  [57.24, 60.56, 'ternyata pernah terlihat *minum air zamzam sambil berdiri*.'],
+  [60.96, 64.42, 'Perbuatan Nabi inilah yang menjadi *qarinah* atau petunjuk'],
+  [64.62, 67.64, 'bahwa larangan tersebut bukan haram yang bikin berdosa,'],
+  [67.96, 70.54, 'melainkan *makruh*, sebagai *adab terbaik*.'],
+  [70.9, 74.88, 'Indahnya belajar fiqih, bikin kita nggak gampang *menghakimi tanpa ilmu*.'],
+];
+
+// ---------- elemen episode ----------
+const HIJAU = '#4E8B5F', MERAH = '#E2574C', EMAS = '#F2B544', KUNING = '#F2C53D';
+function ruang(T, warm = 0) {
+  sky([[0, mix('#EAF2EC', '#FFF1DA', warm)], [1, mix('#CFE3D6', '#F4D9AE', warm)]]);
+  particles(T, 'rgba(255,214,140,1)', 18, 37, .3);
+  ctx.fillStyle = mix('#7FA98A', '#C98E5A', warm); ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, 884, W, 4);
+}
+// lampu larangan: kuning 0 = merah HARAM menyala, 1 = kuning MAKRUH menyala; kunci 0..1 = gembok di lampu merah
+function lampu(x, y, s, kuning, kunci = 0, o = {}) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = '#3A3348'; ctx.fillRect(-8, 150, 16, 160);
+  ctx.fillStyle = '#2A2233'; roundRect(-64, -170, 128, 330, 30); ctx.fill();
+  const lamp = (cy, col, on, lab) => {
+    if (on > 0) { const g = ctx.createRadialGradient(0, cy, 6, 0, cy, 110); g.addColorStop(0, hexA(col, .55 * on)); g.addColorStop(1, hexA(col, 0)); ctx.fillStyle = g; ctx.fillRect(-110, cy - 110, 220, 220); }
+    ctx.fillStyle = mix('#4A4258', col, .15 + .85 * on); ctx.beginPath(); ctx.arc(0, cy, 40, 0, 6.28); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(-12, cy - 12, 12, 0, 6.28); ctx.fill();
+    if (o.label !== false) { ctx.font = '900 19px Inter'; ctx.textAlign = 'left'; ctx.fillStyle = on > .5 ? col : 'rgba(42,34,51,.35)'; ctx.fillText(lab, 76, cy + 7); }
+  };
+  lamp(-100, MERAH, 1 - kuning, 'HARAM'); lamp(0, KUNING, kuning, 'MAKRUH'); lamp(100, HIJAU, 0, 'MUBAH');
+  if (kunci > 0) {
+    ctx.save(); ctx.globalAlpha = clamp(kunci * 2); ctx.translate(-92, -100 - (1 - kunci) * 10);
+    ctx.strokeStyle = '#D8D0C4'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(0, -10 - (1 - kunci) * 10, 13, Math.PI, 0); ctx.stroke();
+    ctx.fillStyle = '#F2B544'; roundRect(-19, -10, 38, 30, 6); ctx.fill(); ctx.fillStyle = '#2A2233'; ctx.beginPath(); ctx.arc(0, 2, 4, 0, 6.28); ctx.fill(); ctx.fillRect(-2, 2, 4, 10);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function gelas(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = 'rgba(200,230,250,.85)'; ctx.beginPath(); ctx.moveTo(-22, -34); ctx.lineTo(22, -34); ctx.lineTo(17, 30); ctx.lineTo(-17, 30); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(110,180,230,.8)'; ctx.beginPath(); ctx.moveTo(-19, -12); ctx.lineTo(19, -12); ctx.lineTo(17, 30); ctx.lineTo(-17, 30); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(42,34,51,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-22, -34); ctx.lineTo(-17, 30); ctx.lineTo(17, 30); ctx.lineTo(22, -34); ctx.stroke();
+  ctx.restore();
+}
+function kartuLarang(x, y, k, judul, sub, gambar, cap) {
+  if (k <= 0) return; const s = backOut(clamp(k));
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.globalAlpha = clamp(k * 2);
+  ctx.fillStyle = '#FFFDF7'; roundRect(-140, -130, 280, 260, 24); ctx.fill();
+  gambar(0, -30);
+  ctx.textAlign = 'center'; ctx.font = '900 22px Inter'; ctx.fillStyle = '#2A2233'; ctx.fillText(judul, 0, 78); ctx.font = '700 16px Inter'; ctx.fillStyle = '#7A6A5C'; ctx.fillText(sub, 0, 104);
+  ctx.restore();
+  if (cap) stempel(x + 60, y - 100, cap[0], cap[1], cap[2], 30, -.14);
+}
+function ikonLarang(x, y) { ctx.strokeStyle = MERAH; ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(x, y, 44, 0, 6.28); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x - 31, y - 31); ctx.lineTo(x + 31, y + 31); ctx.stroke(); }
+
+// ---------- adegan ----------
+function S_hook(T) {
+  sky([[0, '#14324A'], [1, '#1E4A5E']]);
+  rays(W / 2, 420, 40, 900, 18, .22 + .3 * hookPunch(T), '120,200,255', T * .15);
+  particles(T, 'rgba(220,235,255,1)', 22, 5, .8);
+  ctx.fillStyle = '#10283A'; ctx.fillRect(0, 884, W, H);
+  const hk = backOut(prog(T, .42, .75));
+  if (hk > 0) {
+    ctx.save(); ctx.translate(W / 2, 200); ctx.scale(hk, hk);
+    ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 20;
+    ctx.font = '900 30px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('SAMA-SAMA DILARANG,', 0, -36);
+    ctx.font = '900 60px Inter'; ctx.fillStyle = AMBER; ctx.fillText('KOK BEDA HUKUM?', 0, 44); ctx.restore();
+  }
+  kartuLarang(200, 450, prog(T, 4.5, 4.9), 'Zina & riba', 'dilarang dalam dalil', (x, y) => ikonLarang(x, y), [prog(T, 6.4, 6.65), 'HARAM', MERAH]);
+  kartuLarang(520, 450, prog(T, 8.6, 8.9), 'Minum berdiri', 'juga dilarang', (x, y) => { gelas(x, y, 1.1); ctx.globalAlpha = .9; ikonLarang(x, y); ctx.globalAlpha = 1; }, [prog(T, 9.6, 9.85), 'MAKRUH?', '#C99A1E']);
+  pil(W / 2, 625, prog(T, 11.4, 11.7), 'PADAHAL ADA LARANGANNYA!', '#8C3B2E', '#fff', 24);
+  pil(W / 2, 682, prog(T, 13.9, 14.2), 'HR. Muslim: “nahā an yasyrabar-rajulu qā’iman”', '#1E4A5E', '#fff', 17);
+  drawDafa(W / 2, 884, .78, { t: T, mood: T > 8.6 ? -.3 : .4, look: 0, sad: prog(T, 9.0, 9.6) * .6 });
+}
+function S_tanya(T) {
+  ruang(T, .3);
+  headline('TAPI KOK NGGAK', ['DIHUKUMI HARAM?'], T, 17.1, 23.5, { y: 150, size: 54, bigColor: '#8C3B2E', smallColor: '#5F7A68' });
+  headline('JAWABANNYA ADA DI', ['KAIDAH FIQIH'], T, 23.8, 0, { y: 150, size: 56, bigColor: '#2A4C38', smallColor: '#5F7A68' });
+  lampu(430, 560, 1.15, .5 + .5 * Math.sin(T * 3), 0);
+  pil(430, 340, prog(T, 20.4, 20.7) * (1 - prog(T, 23.4, 23.7)), 'kayak zina / mencuri?', '#8C3B2E', '#fff', 20);
+  rifdaAt(T, 92, 17.2, 26.3, 'point');
+}
+function S_kaidah(T) {
+  ruang(T, .6);
+  const g = ctx.createRadialGradient(W / 2, 470, 30, W / 2, 470, 460); g.addColorStop(0, 'rgba(255,236,180,.6)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  rays(W / 2, 470, 60, 620, 14, .35 * prog(T, 26.6, 27.6), '255,226,150', T * .08);
+  dalilCard(T, 26.6, 'KAIDAH USHUL FIQIH', ['الأَصْلُ فِي النَّهْيِ لِلتَّحْرِيمِ'], ['“Hukum asal sebuah larangan', 'adalah haram.”'], 'Kaidah ushul fiqih',
+    { y: 130, h: 280, arabSize: 44, bg: 'rgba(35,69,54,.95)' });
+  lampu(450, 640, .95, easeInOut(prog(T, 36.6, 37.6)), 0);
+  pil(250, 860, prog(T, 32.6, 32.9), 'ASALNYA: MERAH', MERAH, '#fff', 20);
+  pil(520, 860, prog(T, 34.4, 34.7), 'KECUALI ADA QARINAH', '#5F7A88', '#fff', 18);
+  rifdaAt(T, 92, 26.7, 38.6, 'chest');
+}
+function S_kunci(T) {
+  ruang(T, .1);
+  dalilCard(T, 39.0, 'QS. AL-ISRA’: 32', ['وَلَا تَقْرَبُوا الزِّنَىٰ'], ['“Dan janganlah kamu mendekati zina;', 'sesungguhnya zina itu adalah', 'suatu perbuatan yang keji …”'], 'Terjemahan Kemenag RI',
+    { y: 110, h: 305, arabSize: 40, bg: 'rgba(90,30,36,.95)' });
+  lampu(470, 640, .95, 0, easeOut(prog(T, 47.6, 48.2)));
+  [['ZINA', 39.1], ['RIBA', 40.0], ['HARTA ANAK YATIM', 41.2]].forEach(([l, a], i) => pil(170, 500 + i * 70, prog(T, a, a + .3), l, MERAH, '#fff', 20));
+  pil(170, 730, prog(T, 43.7, 44.0), 'tak ada dalil peringan', '#5F7A88', '#fff', 17);
+  stempel(470, 860, prog(T, 49.8, 50.05), 'MUTLAK HARAM', MERAH, 34, -.06);
+}
+function S_zamzam(T) {
+  ruang(T, .5);
+  // kartu 1: larangan; kartu 2: Nabi ﷺ minum zamzam sambil berdiri (Nabi tidak digambar)
+  const c1 = 1 - prog(T, 57.0, 57.3);
+  ctx.save(); ctx.globalAlpha = c1;
+  dalilCard(T, 52.3, 'HR. MUSLIM NO. 2024 · DARI ANAS', ['نَهَى أَنْ يَشْرَبَ الرَّجُلُ قَائِمًا'], ['“Beliau melarang seseorang', 'minum sambil berdiri.”'], 'Hadis shahih', { y: 110, h: 270, arabSize: 38, bg: 'rgba(30,74,94,.95)' });
+  ctx.restore();
+  if (T > 57.0) dalilCard(T, 57.3, 'HR. AL-BUKHARI NO. 1637 · MUSLIM NO. 2027', ['سَقَيْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم', 'مِنْ زَمْزَمَ فَشَرِبَ وَهُوَ قَائِمٌ'], ['“Aku memberi minum Rasulullah ﷺ dari air zamzam,', 'lalu beliau minum sambil berdiri.”'], 'Dari Ibnu ‘Abbas · hadis shahih', { y: 110, h: 320, arabSize: 32, bg: 'rgba(30,74,94,.95)' });
+  // cahaya + gelas zamzam = qarinah; lampu pindah merah → kuning
+  const gk = easeOut(prog(T, 58.0, 58.6));
+  if (gk > 0) { rays(200, 640, 30, 300, 14, .45 * gk, '255,240,200', T * .1); ctx.save(); ctx.globalAlpha = gk; gelas(200, 650, 1.6); ctx.restore(); pil(200, 760, prog(T, 61.0, 61.3), 'QARINAH', EMAS, '#2A2233', 22); }
+  lampu(490, 650, .95, easeInOut(prog(T, 64.6, 65.6)), 1 - easeOut(prog(T, 63.6, 64.2)));
+  stempel(450, 880, prog(T, 68.0, 68.25), 'MAKRUH = ADAB TERBAIK', '#C99A1E', 28, -.05);
+}
+function S_penutup(T) {
+  ruang(T, .4);
+  headline('INDAHNYA', ['BELAJAR FIQIH'], T, 71.0, 0, { y: 150, size: 60, bigColor: '#2A4C38', smallColor: '#5F7A68' });
+  lampu(470, 560, .85, 1, 0);
+  pil(470, 790, prog(T, 72.4, 72.7), 'nggak gampang menghakimi', HIJAU, '#fff', 22);
+  rifdaAt(T, 92, 71.0, 75.0, 'point');
+}
+
+const SCENES = [[0, S_hook], [HOOK_END, S_tanya], [26.5, S_kaidah], [38.72, S_kunci], [52.15, S_zamzam], [70.72, S_penutup], [VO_END, S_follow]];
+
+// efek suara (detik video) untuk audio.py
+function sfxEvents() {
+  const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
+  // hook: boom judul, kartu zina/riba dicap HARAM, boom "cuma makruh?", scratch "padahal ada larangannya!", ding "kok nggak haram?"
+  add(HOOK_HITS[0], 'hook_boom'); add(4.5, 'pop'); add(6.4, 'set_down'); add(8.05, 'riser'); add(HOOK_HITS[1], 'hook_boom'); add(9.6, 'set_down');
+  add(11.4, 'scratch'); add(13.9, 'pop'); add(17.02, 'ding');
+  SCENES.slice(2).forEach(([c]) => add(c - .6, 'whoosh'));
+  add(17.1, 'title'); add(20.4, 'pop'); add(23.8, 'title'); add(26.6, 'title');
+  add(32.6, 'pop'); add(34.4, 'pop'); add(36.6, 'balance');
+  add(39.0, 'title'); [39.1, 40.0, 41.2].forEach((t, k) => add(t, 'place', { k: k + 1 })); add(47.6, 'clank'); add(49.8, 'set_down');
+  add(52.3, 'title'); add(57.3, 'title'); add(58.0, 'rise', { i: 1 }); add(61.0, 'pop'); add(63.6, 'unlock'); add(64.6, 'balance'); add(68.0, 'set_down');
+  add(71.0, 'title'); add(72.4, 'sprout');
+  add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
+  return ev.sort((a, b) => a.t - b.t);
+}
+// cover: gaya asli seri (ep03–ep07), semua isi di zona potongan 4:5
+function drawCover() {
+  NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  ruang(3, .3);
+  const g = ctx.createRadialGradient(470, 830, 30, 470, 830, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  lampu(470, 800, .78, 0, 1);
+  gelas(640, 980, 1.3);
+  const tg = ctx.createLinearGradient(0, 0, 0, 680); tg.addColorStop(0, 'rgba(35,69,54,.72)'); tg.addColorStop(.35, 'rgba(35,69,54,.6)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 680);
+  iconB(56, 245, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 252);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 72px Inter'; ctx.fillStyle = AMBER; ctx.fillText('SAMA DILARANG,', 40, 380); ctx.fillText('BEDA HUKUM?', 40, 462);
+  ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('Haram vs makruh, kok bisa?', 44, 530);
+  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kaidah Ushul Fiqih #6', 44, 572);
+  ctx.shadowBlur = 0;
+  drawRifda(110, 1068, 1.0, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+}
+exportEpisode();
+</script>
+</body></html>
