@@ -402,15 +402,19 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  // 9:16 untuk Reels; isi penting di zona potongan 4:5 (COVER_AMAN di lib.js)
-  sky([[0, '#1E3B2E'], [.42, '#2F5A44'], [.58, '#F2DDB4'], [1, '#C98E5A']]);
-  const g = ctx.createRadialGradient(W / 2, 830, 30, W / 2, 830, 460); g.addColorStop(0, 'rgba(255,236,180,.75)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#B98552'; ctx.fillRect(0, 1010, W, H);
-  coverJudul('KAIDAH USHUL FIQIH #1', ['SETELAN', 'PABRIK'], 'sebuah perintah');
-  saklar(440, 830, .78, 0, { tag: 1, lock: 1 });
-  kunci(625, 935, .62, -.5, 'QARINAH');
-  drawRifda(112, 1048, .98, { arms: 'point', look: .6, mood: 1 });
-  coverLogo(1052);
+  perpus(3, .3);
+  const g = ctx.createRadialGradient(470, 830, 30, 470, 830, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  saklar(470, 830, .85, 0, { tag: 1, lock: 1 });
+  kunci(640, 1000, .75, -.5, 'QARINAH');
+  const tg = ctx.createLinearGradient(0, 0, 0, 700); tg.addColorStop(0, 'rgba(35,69,54,.72)'); tg.addColorStop(.35, 'rgba(35,69,54,.6)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 700);
+  iconB(56, 245, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 252);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 92px Inter'; ctx.fillStyle = AMBER; ctx.fillText('SETELAN', 40, 380); ctx.fillText('PABRIK', 40, 470);
+  ctx.font = '900 50px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('SEBUAH PERINTAH', 42, 534);
+  ctx.font = '700 26px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kenapa ada yang wajib, sunnah, mubah?', 44, 582);
+  ctx.shadowBlur = 0;
+  drawRifda(125, 1068, 1.0, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
 }
 exportEpisode();
 </script>

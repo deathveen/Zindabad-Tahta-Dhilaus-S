@@ -293,27 +293,22 @@ function S_follow(T) {
 // Cover tetap 9:16 (Reels), tapi isi penting dirancang untuk potongan tengah 4:5 (feed IG:
 // y 190..1090 logis; grid 3:4 = y 160..1120 ikut aman). Di luar zona itu hanya latar.
 const COVER_AMAN = { atas: 205, bawah: 1075 };
-// judul cover rata tengah: kapsul seri, baris judul besar (ukuran otomatis), subjudul; mengembalikan y bawahnya
-function coverJudul(seri, baris, sub, o = {}) {
-  ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-  let y = o.y || 252;
-  if (seri) { ctx.font = '900 22px Inter'; const w = ctx.measureText(seri).width + 40; ctx.fillStyle = o.seriBg || B.daun; roundRect(W / 2 - w / 2, y - 22, w, 40, 20); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(seri, W / 2, y + 6); y += 30; }
-  let size = o.size || 116; ctx.font = `900 ${size}px Inter`;
-  const maxW = Math.max(...baris.map(l => ctx.measureText(l).width)); if (maxW > 650) size = Math.floor(size * 650 / maxW);
-  ctx.font = `900 ${size}px Inter`; ctx.lineJoin = 'round';
-  baris.forEach((l, i) => {
-    y += size * (i ? 1.0 : 1.02);
-    ctx.lineWidth = size * .16; ctx.strokeStyle = o.garis || 'rgba(20,24,40,.85)'; ctx.strokeText(l, W / 2, y);
-    ctx.fillStyle = (o.warna || [AMBER])[i % (o.warna || [AMBER]).length]; ctx.fillText(l, W / 2, y);
-  });
-  if (sub) { y += 56; ctx.font = '800 36px Inter'; ctx.lineWidth = 7; ctx.strokeStyle = o.garis || 'rgba(20,24,40,.85)'; ctx.strokeText(sub, W / 2, y); ctx.fillStyle = '#fff'; ctx.fillText(sub, W / 2, y); }
-  ctx.restore(); return y;
+// judul cover gaya asli seri: logo kiri atas, judul kuning rata kiri dengan bayangan lembut (tanpa garis
+// hitam), subjudul putih, keterangan krem; posisi mulai y 245 supaya utuh di potongan 4:5
+function coverJudul(baris, sub, ket, o = {}) {
+  ctx.save(); ctx.textAlign = 'left';
+  const y0 = o.y || 245; iconB(56, y0, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('faedah harian', 94, y0 + 7);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  const size = o.size || 88; ctx.font = `900 ${size}px Inter`; ctx.fillStyle = AMBER;
+  let y = y0 + 135; baris.forEach((l, i) => { ctx.fillText(l, 40, y); y += size * 1.02; });
+  if (sub) { y += 4; ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText(sub, 44, y - size * 1.02 + 60); y += 60 - size * 1.02 + 42; }
+  if (ket) { ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText(ket, 44, y - 4); }
+  ctx.restore();
 }
-// logo kecil "faedah harian" di pojok kanan bawah zona aman
-function coverLogo(y = 1042) {
-  ctx.save(); ctx.font = '800 20px Inter'; const w = ctx.measureText('faedah harian').width + 70;
-  ctx.fillStyle = 'rgba(20,24,40,.7)'; roundRect(W - 36 - w, y - 26, w, 48, 24); ctx.fill();
-  iconB(W - 36 - w + 26, y - 2, 18); ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', W - 36 - w + 52, y + 5); ctx.restore();
+// lapisan gelap tipis di atas latar supaya judul terbaca (warna latar video tetap terlihat)
+function coverLapisan(warna = '35,69,54', sampai = 700) {
+  const tg = ctx.createLinearGradient(0, 0, 0, sampai); tg.addColorStop(0, `rgba(${warna},.72)`); tg.addColorStop(.35, `rgba(${warna},.6)`); tg.addColorStop(1, `rgba(${warna},0)`);
+  ctx.fillStyle = tg; ctx.fillRect(0, 0, W, sampai);
 }
 function sceneFor(T) { let f = SCENES[0][1]; SCENES.forEach(([a, fn]) => { if (T >= a) f = fn; }); return f; }
 

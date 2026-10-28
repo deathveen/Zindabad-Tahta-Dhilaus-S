@@ -236,7 +236,7 @@ node video/karakter/shot.js video/karakter/sheet.html lembar.png
 | Logo C (فَائِدَة يَوْمِيَّة) | Edisi khusus, misalnya Ramadan → `logo-C.png` |
 | Watermark video | `logo/watermark.png`, putih, pojok kiri atas, opasitas ±55% |
 | Kartu penutup | Latar hijau tua, logo B, "Follow @faedahharian.official", Rifda melambai, tombol "+ Follow" |
-| Cover Reels | Ukuran 9:16, semua isi di zona potongan tengah 4:5 (feed IG; grid 3:4 ikut aman): kapsul seri, judul besar rata tengah bergaris, perumpamaan utama, Rifda kecil menunjuk, logo kecil kanan bawah; latar mengikuti isi. Disimpan 9:16 + 4:5 + 3:4 |
+| Cover Reels | Gaya tetap: logo kecil kiri atas, judul kuning rata kiri (bayangan lembut, tanpa garis hitam), subjudul, perumpamaan utama, Rifda menunjuk; latar = latar video dengan lapisan gelap tipis. Ukuran 9:16, semua isi di zona potongan tengah 4:5 (feed IG). Disimpan 9:16 + 4:5 + 3:4 |
 
 **Bio:**
 ```

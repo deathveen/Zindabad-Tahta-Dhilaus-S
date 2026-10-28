@@ -289,12 +289,17 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  // 9:16 untuk Reels; isi penting di zona potongan 4:5 (COVER_AMAN di lib.js)
-  sky([[0, '#14324A'], [.42, '#1E4A5E'], [.56, '#FFF1DA'], [1, '#CFE2EC']]);
-  ctx.save(); ctx.translate(-62, 205); ctx.scale(1.1, 1.1); jembatan(30, 1, 1); drawDafa(330, 694, .8, { t: 1, mood: 1, arms: 'lift', up: 1, target: 'cheer' }); ctx.restore();
-  coverJudul('KAIDAH USHUL FIQIH #3', ['HAL MUBAH', 'JADI WAJIB?'], 'rahasia jembatan kewajiban');
-  drawRifda(100, 1048, .98, { arms: 'point', look: .6, mood: 1 });
-  coverLogo(1052);
+  sky([[0, '#FFF1DA'], [1, '#CFE2EC']]);
+  ctx.save(); ctx.translate(0, 230); jembatan(30, 1, 1); drawDafa(330, 694, .8, { t: 1, mood: 1, arms: 'lift', up: 1, target: 'cheer' }); ctx.restore();
+  const tg = ctx.createLinearGradient(0, 0, 0, 700); tg.addColorStop(0, 'rgba(20,50,74,.72)'); tg.addColorStop(.35, 'rgba(20,50,74,.6)'); tg.addColorStop(1, 'rgba(20,50,74,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 700);
+  iconB(56, 245, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 252);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 76px Inter'; ctx.fillStyle = AMBER; ctx.fillText('HAL MUBAH', 40, 372); ctx.fillText('JADI WAJIB?', 40, 454);
+  ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('Rahasia “jembatan kewajiban”', 44, 514);
+  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kaidah Ushul Fiqih #3', 44, 556);
+  ctx.shadowBlur = 0;
+  drawRifda(110, 1068, 1.0, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
 }
 exportEpisode();
 </script>

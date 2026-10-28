@@ -76,15 +76,16 @@ function sfxEvents() {
   add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
   return ev.sort((a, b) => a.t - b.t);
 }
-// cover: tetap 9:16 (Reels), isi penting di zona potongan 4:5 feed IG (COVER_AMAN, y 205..1075), isi bingkainya penuh.
-// cover.js menyimpan cover.png + cover-4x5.png + cover-3x4.png. Contoh: ../ep05/render.html.
+// cover: gaya asli seri (judul kuning rata kiri, bayangan lembut, latar = latar adegan video), tetap 9:16;
+// semua isi di zona potongan 4:5 feed IG (COVER_AMAN, y 205..1075). Contoh: ../ep05/render.html.
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  sky([[0, '#14324A'], [.45, '#1E4A5E'], [.6, '#FFF1DA'], [1, '#CFE2EC']]);   // latar penuh, atas gelap untuk judul
-  coverJudul('__JUDUL_KECIL__', ['__JUDUL_BESAR__'], 'ganti subjudul pendek');   // judul 1–2 baris, ±2 kata per baris
-  // perumpamaan utama besar di y ±650..1000, misalnya ctx.translate(-62, 205); ctx.scale(1.1, 1.1); jembatan(30, 1, 1)
-  drawRifda(100, 1048, .98, { arms: 'point', look: .6, mood: 1 });
-  coverLogo();
+  ruang(3, .3);                       // latar sama dengan adegan video
+  // perumpamaan utama di y ±650..1000, misalnya ctx.translate(0, 230); jembatan(30, 1, 1)
+  coverLapisan('20,50,74');
+  coverJudul(['__JUDUL_BESAR__'], 'Ganti subjudul pendek', '__JUDUL_KECIL__');
+  drawRifda(110, 1068, 1.0, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
 }
 exportEpisode();
 </script>

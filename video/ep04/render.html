@@ -307,15 +307,20 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  // 9:16 untuk Reels; isi penting di zona potongan 4:5 (COVER_AMAN di lib.js)
-  sky([[0, '#1E3B2E'], [.42, '#2F5A44'], [.56, '#EAF2EC'], [1, '#7FA98A']]);
-  const g = ctx.createRadialGradient(W / 2, 830, 30, W / 2, 830, 460); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#7FA98A'; ctx.fillRect(0, 1030, W, H);
-  coverJudul('KAIDAH USHUL FIQIH #2', ['1 PERINTAH', '2 SISI'], 'nggak ada larangannya? yakin?');
-  koin(335, 790, 140, 0, R => { centang(0, -R * .1, 1.75, HIJAU); teksKoin('KERJAKAN', '')(R); }, () => {});
-  koin(560, 870, 118, 1, () => {}, R => { silang(0, -R * .1, 1.45, MERAH); teksKoin('TINGGALKAN', 'lawannya')(R); });
-  drawRifda(108, 1048, .98, { arms: 'point', look: .6, mood: 1 });
-  coverLogo();
+  ruang(3, .3);
+  const g = ctx.createRadialGradient(470, 830, 30, 470, 830, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // dua koin: sisi perintah dan sisi larangan
+  koin(300, 800, 140, 0, R => { centang(0, -R * .1, 1.6, HIJAU); teksKoin('KERJAKAN', '')(R); }, () => {});
+  koin(540, 890, 122, 1, () => {}, R => { silang(0, -R * .1, 1.4, MERAH); teksKoin('TINGGALKAN', 'lawannya')(R); });
+  const tg = ctx.createLinearGradient(0, 0, 0, 680); tg.addColorStop(0, 'rgba(35,69,54,.72)'); tg.addColorStop(.35, 'rgba(35,69,54,.6)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 680);
+  iconB(56, 245, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 252);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 88px Inter'; ctx.fillStyle = AMBER; ctx.fillText('1 PERINTAH', 40, 380); ctx.fillText('2 SISI', 40, 470);
+  ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('Nggak ada larangannya? Yakin?', 44, 530);
+  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kaidah Ushul Fiqih #2', 44, 572);
+  ctx.shadowBlur = 0;
+  drawRifda(110, 1068, 1.0, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
 }
 exportEpisode();
 </script>

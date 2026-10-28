@@ -86,8 +86,8 @@ Pose shalat:
 | `kitab(x, y, s, openK, ['BAB WUDHU', 'بَابُ الْوُضُوءِ'])` | kitab Bulughul Maram tertutup → terbuka di bab |
 | `S_follow(T)` | kartu follow + Rifda yang mulutnya bergerak (pakai bila ajakan follow masih diucapkan) |
 | `hexA(warna, alpha)` | warna hex → rgba |
-| `coverJudul(seri, [baris], sub, {y})` | judul cover rata tengah, ukuran otomatis, bergaris tebal (terbaca di grid) |
-| `coverLogo(y=1042)` | kapsul logo "faedah harian" di kanan bawah zona aman cover |
+| `coverJudul([baris], sub, ket, {y, size})` | logo + judul cover gaya asli (kuning rata kiri, bayangan lembut, tanpa garis hitam) |
+| `coverLapisan(rgb, sampai=700)` | lapisan gelap tipis di atas latar cover agar judul terbaca |
 | `COVER_AMAN` | zona aman cover `{atas: 205, bawah: 1075}` (potongan tengah 4:5 feed IG) |
 | `hookPunch(T)` | 0..1 tepat setelah tiap `HOOK_HITS` (untuk efek tambahan di adegan hook) |
 

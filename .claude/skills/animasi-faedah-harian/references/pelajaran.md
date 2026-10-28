@@ -72,3 +72,6 @@ render penuh.
   Rifda di bawah, padahal grid IG/TikTok memotong ke 3:4/1:1 di tengah: judul dan logo
   terpotong. Pemilik akun mau cover tetap 9:16 tapi enak saat dipotong **4:5**: isi penting di
   zona 4:5 (y 205–1075) dan isi bingkainya penuh, pakai `coverJudul`/`coverLogo`.
+- **Cover jangan dirombak gayanya.** Percobaan judul rata tengah bergaris hitam dan latar gelap
+  pekat ditolak pemilik akun: pertahankan gaya asli (judul kuning rata kiri, bayangan lembut,
+  warna latar = video); cukup geser posisinya ke zona 4:5.
