@@ -1,0 +1,91 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#222}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="brand.js"></script>
+<script>
+// Sampul sorotan (highlight) Instagram. Pakai: sorotan.html#nama[-persegi][-guides]
+// Versi story 1080×1920; IG memotong lingkaran di tengah, jadi motif dijaga di dalam radius ±360.
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+const hash = location.hash.slice(1), square = /persegi/.test(hash), guides = /guides/.test(hash);
+const W = 1080, H = square ? 1080 : 1920, CX = W / 2, CY = H / 2;
+cv.width = W; cv.height = H;
+
+function background() {
+  ctx.fillStyle = B.daun; ctx.fillRect(0, 0, W, H);
+  const g = ctx.createRadialGradient(CX, CY - 40, 30, CX, CY, 520);
+  g.addColorStop(0, 'rgba(242,181,68,.35)'); g.addColorStop(1, 'rgba(242,181,68,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = shade(B.daun, .1); ctx.beginPath(); ctx.arc(CX, CY, 330, 0, 6.28); ctx.fill();
+}
+
+// buku terbuka, tampak depan
+function openBook(x, y, w) {
+  const h = w * .38;
+  ctx.save(); ctx.translate(x, y); ctx.lineJoin = 'round';
+  // sampul
+  ctx.fillStyle = B.daunGelap;
+  ctx.beginPath(); ctx.moveTo(-w / 2 - 14, -h + 20); ctx.lineTo(-w / 2 - 14, 22); ctx.quadraticCurveTo(-w / 4, 6, 0, 30);
+  ctx.quadraticCurveTo(w / 4, 6, w / 2 + 14, 22); ctx.lineTo(w / 2 + 14, -h + 20); ctx.closePath(); ctx.fill();
+  // halaman
+  [-1, 1].forEach(d => {
+    ctx.fillStyle = d < 0 ? '#FFFDF7' : '#F6EBD5';
+    ctx.beginPath(); ctx.moveTo(0, -h + 18); ctx.quadraticCurveTo(d * w / 4, -h - 14, d * w / 2, -h + 4);
+    ctx.lineTo(d * w / 2, 4); ctx.quadraticCurveTo(d * w / 4, -12, 0, 16); ctx.closePath(); ctx.fill();
+    // baris tulisan
+    ctx.strokeStyle = 'rgba(122,106,92,.35)'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      const yy = -h + 46 + i * 30, x1 = d * 34, x2 = d * (w / 2 - 34 - (i === 3 ? 60 : 0));
+      ctx.beginPath(); ctx.moveTo(x1, yy + 6); ctx.quadraticCurveTo((x1 + x2) / 2, yy - 6, x2, yy); ctx.stroke();
+    }
+  });
+  ctx.strokeStyle = 'rgba(42,34,51,.18)'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(0, -h + 18); ctx.lineTo(0, 16); ctx.stroke();
+  ctx.restore();
+}
+
+// kunci emas berdiri miring, tunas tumbuh dari gagangnya
+function key(x, y, len, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  const gold = B.fajar, dark = shade(B.fajar, -.25);
+  ctx.fillStyle = gold;
+  // batang
+  ctx.beginPath(); ctx.roundRect(-14, -len * .15, 28, len * .95, 14); ctx.fill();
+  // gerigi
+  ctx.beginPath(); ctx.roundRect(10, len * .55, 52, 26, 8); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(10, len * .68, 38, 24, 8); ctx.fill();
+  // gagang
+  ctx.beginPath(); ctx.arc(0, -len * .3, len * .2, 0, 6.28); ctx.fill();
+  ctx.fillStyle = shade(B.daun, .1); ctx.beginPath(); ctx.arc(0, -len * .3, len * .09, 0, 6.28); ctx.fill();
+  ctx.strokeStyle = dark; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.arc(0, -len * .3, len * .15, 0, 6.28); ctx.stroke();
+  ctx.fillStyle = dark; ctx.beginPath(); ctx.roundRect(-22, -len * .1, 44, 14, 7); ctx.fill();
+  ctx.restore();
+}
+
+function sparkle(x, y, r) {
+  ctx.save(); ctx.fillStyle = '#FFE7A8'; ctx.translate(x, y);
+  ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? r * .3 : r; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+const COVERS = {
+  // Kumpulan Kaidah Usul Fiqh: kunci (kaidah) melayang di atas kitab terbuka, tunas tumbuh dari gagangnya
+  'usul-fiqh': () => {
+    background();
+    openBook(CX, CY + 205, 480);
+    const len = 380, rot = Math.PI / 2 - .1, kx = CX + 55, ky = CY - 95;
+    key(kx, ky, len, rot);
+    const bx = kx - Math.sin(rot) * -len * .3, by = ky + Math.cos(rot) * -len * .3;
+    sprout(bx, by - len * .2 + 4, 1.05, '#2F6B4F', '#8BD17C');
+    sparkle(CX - 205, CY - 205, 28); sparkle(CX + 255, CY - 140, 18); sparkle(CX - 250, CY - 40, 14);
+  },
+};
+(COVERS[hash.replace(/-persegi|-guides/g, '')] || COVERS['usul-fiqh'])();
+
+if (guides) {
+  ctx.strokeStyle = 'rgba(255,60,60,.9)'; ctx.lineWidth = 4; ctx.setLineDash([14, 10]);
+  ctx.beginPath(); ctx.arc(CX, CY, 360, 0, 6.28); ctx.stroke();
+}
+</script>
+</body></html>
