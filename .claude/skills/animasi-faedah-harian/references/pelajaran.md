@@ -68,10 +68,10 @@ render penuh.
 - **Label menempel di judul** (ep05: RIBA/AKAD HARAM di bawah "BUKA USAHA"). Beri jarak ±90 px
   di bawah baris judul terakhir.
 - **Pemilik akun lebih suka langsung dianimasikan**; storyboard disertakan saat menyerahkan hasil.
-- **Cover bagus di Reels tapi jelek di feed (ep03–ep05).** Judul ditaruh di atas (y ±200) dan
-  Rifda di bawah, padahal grid IG/TikTok memotong ke 3:4/1:1 di tengah: judul dan logo
-  terpotong. Pemilik akun mau cover tetap 9:16 tapi enak saat dipotong **4:5**: isi penting di
-  zona 4:5 (y 205–1075) dan isi bingkainya penuh, pakai `coverJudul`/`coverLogo`.
-- **Cover jangan dirombak gayanya.** Percobaan judul rata tengah bergaris hitam dan latar gelap
-  pekat ditolak pemilik akun: pertahankan gaya asli (judul kuning rata kiri, bayangan lembut,
-  warna latar = video); cukup geser posisinya ke zona 4:5.
+- **Cover bagus di Reels tapi jelek di feed (ep03–ep05).** Logo dan judul ditaruh terlalu atas
+  (y ±70–420) dan Rifda terlalu bawah, padahal feed IG memotong cover 9:16 ke tengah **4:5**:
+  logo, judul, dan Rifda terpotong.
+- **Perbaikannya: gaya tetap, posisi saja yang digeser (disetujui pemilik akun, "nah cakep").**
+  Dua percobaan ditolak: (1) judul rata tengah bergaris hitam tebal dan (2) latar gelap pekat.
+  Yang benar: gaya asli seri (judul kuning rata kiri, bayangan lembut, tanpa garis hitam; warna
+  latar sama dengan video, lapisan gelap tipis), semua isi di zona 4:5 (y 205–1075).

@@ -135,7 +135,10 @@ Di `video/epNN/render.html`:
    (`coverLapisan`), jangan pekat. Yang diatur hanya posisinya: semua isi di zona potongan tengah
    4:5 (`COVER_AMAN`, y 205–1075): logo y ±245, judul mulai ±380, perumpamaan y ±650–1000, Rifda
    tanah ±1068. `cover.js` menyimpan `cover.png` (9:16), `cover-4x5.png`, `cover-3x4.png`; cek
-   potongan 4:5 lalu kirim ke pemilik akun.
+   potongan 4:5 (tidak ada yang terpotong atau bertabrakan) lalu kirim ke pemilik akun.
+   **Contoh yang disetujui: `drawCover()` di `video/ep03`–`ep05/render.html`** (pola: lapisan
+   tipis, logo y 245, judul 380/470, subjudul ±530, keterangan ±575, ilustrasi y ±650–1000,
+   Rifda tanah 1068). Jangan ganti gaya, warna, atau ornamennya kecuali diminta.
 
 Struktur adegan ep05 yang terbukti bagus (sesuaikan dengan isi VO):
 
@@ -176,10 +179,12 @@ Perbaiki dulu sebelum render penuh.
 
 - Render 4 proses paralel memakan sekitar 2–4 menit. Jalankan sebagai proses latar belakang
   (`run_in_background`).
-- Hasilnya: MP4 (-14 LUFS, dikoreksi otomatis walau ada boom hook), `cover.png`, dan contact sheet.
+- Hasilnya: MP4 (-14 LUFS, dikoreksi otomatis walau ada boom hook), `cover.png` + `cover-4x5.png`
+  + `cover-3x4.png`, dan contact sheet.
   Lihat contact sheet-nya dulu.
 - Kirim juga potongan audio hook (13 detik pertama) supaya pemilik akun bisa menilai hook cepat.
-- Kirim MP4, cover, dan audio hook ke pemilik akun lewat `SendUserFile`.
+- Kirim MP4, `cover.png` (untuk diunggah), `cover-4x5.png` (pratinjau feed), dan audio hook ke
+  pemilik akun lewat `SendUserFile`.
 - Serahkan dengan **tabel alur** (waktu, isi VO, visual), catatan caption yang tidak yakin
   (sebutkan detiknya), dan catatan dalil.
 - Tunggu penilaian dan kerjakan revisinya.
