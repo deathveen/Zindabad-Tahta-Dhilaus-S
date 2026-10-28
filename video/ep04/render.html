@@ -307,20 +307,15 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  ruang(3, .3);
-  const g = ctx.createRadialGradient(470, 760, 30, 470, 760, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  // dua koin: sisi perintah dan sisi larangan
-  koin(300, 760, 150, 0, R => { centang(0, -R * .1, 1.7, HIJAU); teksKoin('KERJAKAN', '')(R); }, () => {});
-  koin(540, 860, 130, 1, () => {}, R => { silang(0, -R * .1, 1.5, MERAH); teksKoin('TINGGALKAN', 'lawannya')(R); });
-  const tg = ctx.createLinearGradient(0, 0, 0, 520); tg.addColorStop(0, 'rgba(35,69,54,.96)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 520);
-  iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
-  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
-  ctx.font = '900 88px Inter'; ctx.fillStyle = AMBER; ctx.fillText('1 PERINTAH', 40, 220); ctx.fillText('2 SISI', 40, 310);
-  ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('Nggak ada larangannya? Yakin?', 44, 370);
-  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kaidah Ushul Fiqih #2', 44, 412);
-  ctx.shadowBlur = 0;
-  drawRifda(110, 1090, 1.1, { arms: 'point', look: .6, mood: 1 });
-  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+  // latar penuh 9:16; isi penting di zona aman tengah (lihat COVER_AMAN di lib.js)
+  sky([[0, '#1E3B2E'], [.45, '#2F5A44'], [.6, '#EAF2EC'], [1, '#7FA98A']]);
+  const g = ctx.createRadialGradient(W / 2, 800, 30, W / 2, 800, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#7FA98A'; ctx.fillRect(0, 980, W, H);
+  coverJudul('KAIDAH USHUL FIQIH #2', ['1 PERINTAH', '2 SISI'], 'nggak ada larangannya? yakin?', { y: 318 });
+  koin(330, 770, 112, 0, R => { centang(0, -R * .1, 1.4, HIJAU); teksKoin('KERJAKAN', '')(R); }, () => {});
+  koin(545, 840, 100, 1, () => {}, R => { silang(0, -R * .1, 1.25, MERAH); teksKoin('TINGGALKAN', 'lawannya')(R); });
+  drawRifda(110, 985, .78, { arms: 'point', look: .6, mood: 1 });
+  coverLogo();
 }
 exportEpisode();
 </script>

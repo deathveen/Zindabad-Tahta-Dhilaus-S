@@ -76,18 +76,15 @@ function sfxEvents() {
   add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
   return ev.sort((a, b) => a.t - b.t);
 }
-// cover Reels: judul besar berupa pertanyaan/klaim, subjudul, perumpamaan utama, Rifda menunjuk
+// cover: isi penting HANYA di zona aman 1:1 (y 290..990) supaya utuh di Reels 9:16, grid 3:4, dan feed 1:1.
+// cover.js menyimpan cover.png + cover-3x4.png + cover-1x1.png. Contoh: ../ep05/render.html.
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  ruang(3, .3);
-  const tg = ctx.createLinearGradient(0, 0, 0, 560); tg.addColorStop(0, 'rgba(20,50,74,.96)'); tg.addColorStop(1, 'rgba(20,50,74,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 560);
-  iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
-  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
-  ctx.font = '900 76px Inter'; ctx.fillStyle = AMBER; ctx.fillText('__JUDUL_BESAR__', 40, 230);
-  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('__JUDUL_KECIL__', 44, 290);
-  ctx.shadowBlur = 0;
-  drawRifda(110, 1150, 1.05, { arms: 'point', look: .6, mood: 1 });
-  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+  sky([[0, '#14324A'], [.45, '#1E4A5E'], [.6, '#FFF1DA'], [1, '#CFE2EC']]);   // latar penuh, atas gelap untuk judul
+  coverJudul('__JUDUL_KECIL__', ['__JUDUL_BESAR__'], 'ganti subjudul pendek', { y: 318 });   // judul 1–2 baris, ±2 kata per baris
+  // perumpamaan utama di y ±620..960, misalnya jembatan(30, 1, 1) dengan ctx.translate
+  drawRifda(105, 985, .78, { arms: 'point', look: .6, mood: 1 });
+  coverLogo();
 }
 exportEpisode();
 </script>

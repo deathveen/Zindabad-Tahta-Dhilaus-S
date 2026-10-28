@@ -402,19 +402,15 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  perpus(3, .3);
-  const g = ctx.createRadialGradient(470, 760, 30, 470, 760, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  saklar(470, 740, .9, 0, { tag: 1, lock: 1 });
-  kunci(640, 980, .8, -.5, 'QARINAH');
-  const tg = ctx.createLinearGradient(0, 0, 0, 520); tg.addColorStop(0, 'rgba(35,69,54,.96)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 520);
-  iconB(56, 70, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 77);
-  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
-  ctx.font = '900 92px Inter'; ctx.fillStyle = AMBER; ctx.fillText('SETELAN', 40, 220); ctx.fillText('PABRIK', 40, 310);
-  ctx.font = '900 50px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('SEBUAH PERINTAH', 42, 374);
-  ctx.font = '700 26px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kenapa ada yang wajib, sunnah, mubah?', 44, 424);
-  ctx.shadowBlur = 0;
-  drawRifda(130, 1090, 1.1, { arms: 'point', look: .6, mood: 1 });
-  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+  // latar penuh 9:16; isi penting di zona aman tengah (lihat COVER_AMAN di lib.js)
+  sky([[0, '#1E3B2E'], [.45, '#2F5A44'], [.62, '#F2DDB4'], [1, '#C98E5A']]);
+  const g = ctx.createRadialGradient(W / 2, 800, 30, W / 2, 800, 420); g.addColorStop(0, 'rgba(255,236,180,.75)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#B98552'; ctx.fillRect(0, 960, W, H);
+  coverJudul('KAIDAH USHUL FIQIH #1', ['SETELAN', 'PABRIK'], 'sebuah perintah', { y: 318 });
+  saklar(430, 800, .62, 0, { tag: 1, lock: 1 });
+  kunci(650, 830, .6, -.5, 'QARINAH');
+  drawRifda(120, 985, .78, { arms: 'point', look: .6, mood: 1 });
+  coverLogo();
 }
 exportEpisode();
 </script>

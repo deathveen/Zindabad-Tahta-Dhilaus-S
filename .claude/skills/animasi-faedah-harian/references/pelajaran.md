@@ -68,3 +68,6 @@ render penuh.
 - **Label menempel di judul** (ep05: RIBA/AKAD HARAM di bawah "BUKA USAHA"). Beri jarak ±90 px
   di bawah baris judul terakhir.
 - **Pemilik akun lebih suka langsung dianimasikan**; storyboard disertakan saat menyerahkan hasil.
+- **Cover bagus di Reels tapi jelek di feed (ep03–ep05).** Judul ditaruh di atas (y ±200) dan
+  Rifda di bawah, padahal grid IG/TikTok memotong ke 3:4/1:1 di tengah: judul dan logo
+  terpotong. Sekarang isi penting wajib di zona 1:1 (y 290–990), pakai `coverJudul`/`coverLogo`.
