@@ -76,14 +76,14 @@ function sfxEvents() {
   add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 1.7, 'place', { k: 5 });
   return ev.sort((a, b) => a.t - b.t);
 }
-// cover: isi penting HANYA di zona aman 1:1 (y 290..990) supaya utuh di Reels 9:16, grid 3:4, dan feed 1:1.
-// cover.js menyimpan cover.png + cover-3x4.png + cover-1x1.png. Contoh: ../ep05/render.html.
+// cover: tetap 9:16 (Reels), isi penting di zona potongan 4:5 feed IG (COVER_AMAN, y 205..1075), isi bingkainya penuh.
+// cover.js menyimpan cover.png + cover-4x5.png + cover-3x4.png. Contoh: ../ep05/render.html.
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
   sky([[0, '#14324A'], [.45, '#1E4A5E'], [.6, '#FFF1DA'], [1, '#CFE2EC']]);   // latar penuh, atas gelap untuk judul
-  coverJudul('__JUDUL_KECIL__', ['__JUDUL_BESAR__'], 'ganti subjudul pendek', { y: 318 });   // judul 1–2 baris, ±2 kata per baris
-  // perumpamaan utama di y ±620..960, misalnya jembatan(30, 1, 1) dengan ctx.translate
-  drawRifda(105, 985, .78, { arms: 'point', look: .6, mood: 1 });
+  coverJudul('__JUDUL_KECIL__', ['__JUDUL_BESAR__'], 'ganti subjudul pendek');   // judul 1–2 baris, ±2 kata per baris
+  // perumpamaan utama besar di y ±650..1000, misalnya ctx.translate(-62, 205); ctx.scale(1.1, 1.1); jembatan(30, 1, 1)
+  drawRifda(100, 1048, .98, { arms: 'point', look: .6, mood: 1 });
   coverLogo();
 }
 exportEpisode();

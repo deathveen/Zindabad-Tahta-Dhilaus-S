@@ -128,12 +128,13 @@ Di `video/epNN/render.html`:
      meloncat, `ding` atau `scratch` di pertanyaan ("Kok bisa?"), `riser` menjelang hantaman;
    - visual hook: judul besar menghantam di detik pertama, kontras tinggi. Contoh: `video/ep05/`.
 5. **Isi `sfxEvents()`** di momen penting saja. Jangan memberi SFX di setiap gerakan.
-6. **Buat `drawCover()` yang aman untuk feed.** Grid IG/TikTok memotong cover 9:16 ke tengah
-   (3:4, dan 1:1 di beberapa tampilan). Taruh semua isi penting di **zona aman 1:1 (y 290–990
-   logis)**: `coverJudul(seri, [baris], sub)` rata tengah dengan huruf besar bergaris, perumpamaan
-   utama di y ±620–960, Rifda kecil di kiri bawah, `coverLogo()` di kanan bawah. Di luar zona
-   hanya latar. `cover.js` menyimpan `cover.png` (9:16), `cover-3x4.png`, dan `cover-1x1.png`;
-   cek ketiganya dan kirim ketiganya ke pemilik akun.
+6. **Buat `drawCover()`: tetap 9:16 untuk Reels, tapi enak dilihat saat dipotong 4:5.** Feed IG
+   memotong cover ke tengah **4:5 (y 190–1090 logis)**; grid 3:4 ikut aman. Isi penting di zona
+   `COVER_AMAN` (y 205–1075) dan isi bingkai 4:5 itu dengan penuh: `coverJudul(seri, [baris], sub)`
+   rata tengah huruf besar bergaris (mulai y 252), perumpamaan utama besar di y ±650–1000, Rifda
+   (skala ±.98, tanah 1048) di kiri bawah, `coverLogo()` di kanan bawah (y ±1045). Di luar zona
+   hanya latar. `cover.js` menyimpan `cover.png` (9:16), `cover-4x5.png`, `cover-3x4.png`; cek
+   potongan 4:5 (jangan ada yang bertabrakan) lalu kirim ketiganya ke pemilik akun.
 
 Struktur adegan ep05 yang terbukti bagus (sesuaikan dengan isi VO):
 

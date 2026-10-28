@@ -402,15 +402,15 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  // latar penuh 9:16; isi penting di zona aman tengah (lihat COVER_AMAN di lib.js)
-  sky([[0, '#1E3B2E'], [.45, '#2F5A44'], [.62, '#F2DDB4'], [1, '#C98E5A']]);
-  const g = ctx.createRadialGradient(W / 2, 800, 30, W / 2, 800, 420); g.addColorStop(0, 'rgba(255,236,180,.75)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#B98552'; ctx.fillRect(0, 960, W, H);
-  coverJudul('KAIDAH USHUL FIQIH #1', ['SETELAN', 'PABRIK'], 'sebuah perintah', { y: 318 });
-  saklar(430, 800, .62, 0, { tag: 1, lock: 1 });
-  kunci(650, 830, .6, -.5, 'QARINAH');
-  drawRifda(120, 985, .78, { arms: 'point', look: .6, mood: 1 });
-  coverLogo();
+  // 9:16 untuk Reels; isi penting di zona potongan 4:5 (COVER_AMAN di lib.js)
+  sky([[0, '#1E3B2E'], [.42, '#2F5A44'], [.58, '#F2DDB4'], [1, '#C98E5A']]);
+  const g = ctx.createRadialGradient(W / 2, 830, 30, W / 2, 830, 460); g.addColorStop(0, 'rgba(255,236,180,.75)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#B98552'; ctx.fillRect(0, 1010, W, H);
+  coverJudul('KAIDAH USHUL FIQIH #1', ['SETELAN', 'PABRIK'], 'sebuah perintah');
+  saklar(440, 830, .78, 0, { tag: 1, lock: 1 });
+  kunci(625, 935, .62, -.5, 'QARINAH');
+  drawRifda(112, 1048, .98, { arms: 'point', look: .6, mood: 1 });
+  coverLogo(1052);
 }
 exportEpisode();
 </script>

@@ -70,4 +70,5 @@ render penuh.
 - **Pemilik akun lebih suka langsung dianimasikan**; storyboard disertakan saat menyerahkan hasil.
 - **Cover bagus di Reels tapi jelek di feed (ep03–ep05).** Judul ditaruh di atas (y ±200) dan
   Rifda di bawah, padahal grid IG/TikTok memotong ke 3:4/1:1 di tengah: judul dan logo
-  terpotong. Sekarang isi penting wajib di zona 1:1 (y 290–990), pakai `coverJudul`/`coverLogo`.
+  terpotong. Pemilik akun mau cover tetap 9:16 tapi enak saat dipotong **4:5**: isi penting di
+  zona 4:5 (y 205–1075) dan isi bingkainya penuh, pakai `coverJudul`/`coverLogo`.

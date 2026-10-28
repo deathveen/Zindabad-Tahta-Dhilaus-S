@@ -289,12 +289,12 @@ function sfxEvents() {
 // cover Reels (gambar diam untuk grid profil)
 function drawCover() {
   NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
-  // latar penuh 9:16; isi penting di zona aman tengah (lihat COVER_AMAN di lib.js)
-  sky([[0, '#14324A'], [.45, '#1E4A5E'], [.6, '#FFF1DA'], [1, '#CFE2EC']]);
-  ctx.save(); ctx.translate(0, 160); jembatan(30, 1, 1); drawDafa(330, 694, .72, { t: 1, mood: 1, arms: 'lift', up: 1, target: 'cheer' }); ctx.restore();
-  coverJudul('KAIDAH USHUL FIQIH #3', ['HAL MUBAH', 'JADI WAJIB?'], 'rahasia jembatan kewajiban', { y: 318 });
-  drawRifda(105, 985, .78, { arms: 'point', look: .6, mood: 1 });
-  coverLogo(974);
+  // 9:16 untuk Reels; isi penting di zona potongan 4:5 (COVER_AMAN di lib.js)
+  sky([[0, '#14324A'], [.42, '#1E4A5E'], [.56, '#FFF1DA'], [1, '#CFE2EC']]);
+  ctx.save(); ctx.translate(-62, 205); ctx.scale(1.1, 1.1); jembatan(30, 1, 1); drawDafa(330, 694, .8, { t: 1, mood: 1, arms: 'lift', up: 1, target: 'cheer' }); ctx.restore();
+  coverJudul('KAIDAH USHUL FIQIH #3', ['HAL MUBAH', 'JADI WAJIB?'], 'rahasia jembatan kewajiban');
+  drawRifda(100, 1048, .98, { arms: 'point', look: .6, mood: 1 });
+  coverLogo(1052);
 }
 exportEpisode();
 </script>
