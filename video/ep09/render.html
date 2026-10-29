@@ -1,0 +1,238 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="../branding/brand.js"></script>
+<script src="vo_env.js"></script>
+<script>
+// Faedah Harian · "Cermin Larangan" (kaidah: an-nahyu ‘anisy-syai’i amrun bi-ḍiddihi).
+// Pola mengikuti ep05. Waktu animasi = waktu VO (detik; VO sudah 1.25x dan jeda dipotong).
+// Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+const W = 720, H = 1280, SS = 1.5;
+const VO_END = 51.72, DURATION = 62.45;   // VO_END = mulai ajakan "DM 'mau'" → kartu DM (bukan follow)
+const HOOK_HITS = [0.42, 4.92], HOOK_END = 13.62;   // hook: "jangan scrolling" + "tapi secara nggak langsung"; "nah" = drop
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+let NT = 0;
+</script>
+<script src="../engine/lib.js"></script>
+<script>
+// ---------- naskah ----------
+const CAPTIONS = [
+  [0.3, 1.92, 'Misalnya orang tua bilang,'],
+  [2.02, 3.6, '*“Jangan scrolling terus, udah malam.”*'],
+  [3.88, 4.66, 'Itu kan larangan.'],
+  [4.92, 7.56, 'Tapi secara nggak langsung, kita lagi disuruh buat *langsung tidur*.'],
+  [7.96, 10.26, 'Atau pas guru di kelas bilang *“jangan berisik”*,'],
+  [10.48, 12.3, 'itu artinya kita disuruh *diam dan fokus*.'],
+  [12.58, 13.26, '*Make sense, kan?*'],
+  [13.62, 17.26, 'Nah, di dalam ushul fiqih, konsep ini punya kaidah yang valid dan keren banget:'],
+  [17.46, 20.14, '*An-nahyu ‘anisy-syai’i amrun bi-ḍiddihi.*'],
+  [20.48, 24.24, 'Artinya, *larangan* terhadap sesuatu adalah *perintah* untuk melakukan kebalikannya.'],
+  [24.66, 27.92, 'Jadi pas agama ngelarang kita buat *sombong*, itu bukan cuma sekadar'],
+  [28.08, 32.52, '“jangan sombong”, tapi otomatis jadi perintah buat kita tampil *humble* alias *rendah hati*.'],
+  [33.14, 36.92, 'Pas kita dilarang berbuat *curang*, itu perintah mutlak buat kita berlaku *jujur*.'],
+  [37.3, 38.88, '*No minus aura, full positif.*'],
+  [39.3, 42.02, 'Jadi setiap ada larangan, jangan cuma fokus sama kata *“jangan”*-nya,'],
+  [42.16, 45.24, 'tapi langsung *log in*, lakuin *kebalikannya*.'],
+  [45.6, 49.0, 'Menurut kalian, larangan apa lagi nih yang otomatis nyuruh kita buat *upgrade diri*?'],
+  [49.0, 51.6, '*Spill* di kolom komentar ya.'],
+];
+
+// ---------- elemen episode ----------
+const HIJAU = '#4E8B5F', MERAH = '#E2574C', EMAS = '#F2B544';
+function ruang(T, warm = 0) {
+  sky([[0, mix('#EEEAF6', '#FFF1DA', warm)], [1, mix('#D6CFE8', '#F4D9AE', warm)]]);
+  particles(T, 'rgba(255,214,140,1)', 18, 41, .3);
+  ctx.fillStyle = mix('#9A8CB8', '#C98E5A', warm); ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, 884, W, 4);
+}
+// cermin: kiri = larangan (merah), cermin kanan = pantulan perintah (hijau berkilau)
+function cermin(T, k, larang, perintah, flip, o = {}) {
+  if (k <= 0) return;
+  const cy = o.y || 600, s = backOut(clamp(k));
+  ctx.save(); ctx.translate(W / 2, cy); ctx.scale(s, s); ctx.globalAlpha = clamp(k * 2);
+  // bingkai cermin (kanan)
+  ctx.fillStyle = '#B98552'; roundRect(30, -210, 270, 380, 130); ctx.fill();
+  const g = ctx.createLinearGradient(40, -200, 290, 160); g.addColorStop(0, '#E8F4FA'); g.addColorStop(1, '#BFD9E8'); ctx.fillStyle = g; roundRect(44, -196, 242, 352, 118); ctx.fill();
+  ctx.save(); roundRect(44, -196, 242, 352, 118); ctx.clip();
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.moveTo(80, -200); ctx.lineTo(130, -200); ctx.lineTo(60, 160); ctx.lineTo(44, 160); ctx.fill();
+  const fk = easeOut(clamp(flip));
+  if (fk > 0) {
+    ctx.globalAlpha = fk; const gl = ctx.createRadialGradient(165, -20, 10, 165, -20, 180); gl.addColorStop(0, 'rgba(140,220,150,.55)'); gl.addColorStop(1, 'rgba(140,220,150,0)'); ctx.fillStyle = gl; ctx.fillRect(44, -196, 242, 352);
+    drawDafa(165, 120, .62, { t: T, mood: 1, arms: o.armsKanan || 'chest' });
+  }
+  ctx.restore();
+  ctx.fillStyle = '#8C5A3C'; ctx.fillRect(150, 170, 30, 40); ctx.fillRect(110, 206, 110, 12);
+  // sisi kiri: larangan
+  ctx.globalAlpha = clamp(k * 2);
+  drawDafa(-160, 120, .62, { t: T, mood: o.moodKiri ?? -.4, arms: o.armsKiri || 'fold', look: .5 });
+  ctx.restore();
+  pil(W / 2 - 160, cy - 250, prog(k, .3, .8), larang, MERAH, '#fff', 22);
+  pil(W / 2 + 165, cy - 250, flip, perintah, HIJAU, '#fff', 22);
+  // panah pantulan
+  if (flip > 0) { ctx.save(); ctx.globalAlpha = clamp(flip); ctx.strokeStyle = EMAS; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(W / 2 - 60, cy - 30); ctx.lineTo(W / 2 + 20, cy - 30); ctx.lineTo(W / 2 + 4, cy - 46); ctx.moveTo(W / 2 + 20, cy - 30); ctx.lineTo(W / 2 + 4, cy - 14); ctx.stroke(); ctx.restore(); }
+}
+function hp(x, y, s, glow) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (glow > 0) { const g = ctx.createRadialGradient(0, 0, 10, 0, 0, 120); g.addColorStop(0, `rgba(140,200,255,${.45 * glow})`); g.addColorStop(1, 'rgba(140,200,255,0)'); ctx.fillStyle = g; ctx.fillRect(-120, -120, 240, 240); }
+  ctx.fillStyle = '#2A2233'; roundRect(-40, -72, 80, 144, 14); ctx.fill(); ctx.fillStyle = '#5B8FD6'; roundRect(-34, -62, 68, 120, 8); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 4; i++) roundRect(-28, -54 + ((i * 30 + NT * 80) % 120), 56, 22, 5), ctx.fill();
+  ctx.restore();
+}
+function kasur(x, y, s, k) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.globalAlpha = k;
+  ctx.fillStyle = '#8C5A3C'; roundRect(-110, 0, 220, 50, 10); ctx.fill(); ctx.fillStyle = '#E8E0F0'; roundRect(-104, -26, 208, 40, 14); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; roundRect(-100, -44, 70, 30, 12); ctx.fill(); ctx.fillStyle = '#B9A6E0'; roundRect(-30, -30, 130, 30, 12); ctx.fill();
+  ctx.font = '800 26px Inter'; ctx.fillStyle = '#5B8FD6'; ctx.textAlign = 'center'; [0, 1, 2].forEach(i => { const p = ((NT * .6 + i / 3) % 1); ctx.globalAlpha = k * Math.sin(p * Math.PI); ctx.fillText('z', -60 + p * 30 + i * 8, -60 - p * 50); });
+  ctx.restore();
+}
+
+// ---------- adegan ----------
+function S_hook(T) {
+  sky([[0, '#1A1838'], [1, '#2A2350']]);
+  rays(W / 2, 420, 40, 900, 18, .22 + .3 * hookPunch(T), '170,150,255', T * .15);
+  twinkle(T, .8);
+  ctx.fillStyle = '#15122E'; ctx.fillRect(0, 884, W, H);
+  // judul menghantam
+  const hk = backOut(prog(T, .42, .75));
+  if (hk > 0) {
+    ctx.save(); ctx.translate(W / 2, 200); ctx.scale(hk, hk);
+    ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 20;
+    ctx.font = '900 30px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('DILARANG SESUATU =', 0, -36);
+    ctx.font = '900 58px Inter'; ctx.fillStyle = AMBER; ctx.fillText('DISURUH SESUATU!', 0, 44); ctx.restore();
+  }
+  // contoh 1: scrolling → tidur
+  const c1 = 1 - prog(T, 7.6, 7.96);
+  if (c1 > 0) {
+    ctx.save(); ctx.globalAlpha = c1;
+    hp(210, 520, 1.2, prog(T, .6, 1.0) * (1 - prog(T, 4.9, 5.3)));
+    pil(210, 400, prog(T, 2.0, 2.3), 'JANGAN SCROLLING!', MERAH, '#fff', 20);
+    if (T > 4.92) { ctx.strokeStyle = EMAS; ctx.lineWidth = 7; ctx.lineCap = 'round'; const a = easeOut(prog(T, 4.92, 5.4)); ctx.beginPath(); ctx.moveTo(290, 520); ctx.lineTo(290 + 120 * a, 520); ctx.stroke(); }
+    kasur(530, 560, 1.0, easeOut(prog(T, 5.4, 5.9)));
+    pil(530, 400, prog(T, 5.9, 6.2), 'TIDUR ✓', HIJAU, '#fff', 24);
+    ctx.restore();
+  }
+  // contoh 2: jangan berisik → diam & fokus
+  if (T > 7.8) {
+    pil(210, 420, prog(T, 8.0, 8.3), 'JANGAN BERISIK!', MERAH, '#fff', 22);
+    figure(210, 700, .85, { pose: 'stand', robe: '#5A6B8C', wear: 'kopiah', capColor: '#2B2B33', arms: 'point', mood: .2, look: .4 });
+    ctx.strokeStyle = EMAS; ctx.lineWidth = 7; ctx.lineCap = 'round'; const a = easeOut(prog(T, 10.5, 11.0)); if (a > 0) { ctx.beginPath(); ctx.moveTo(310, 560); ctx.lineTo(310 + 100 * a, 560); ctx.stroke(); }
+    drawDafa(530, 700, .85, { t: T, mood: .6, arms: 'fold', look: -.3 });
+    pil(530, 420, prog(T, 10.5, 10.8), 'DIAM & FOKUS ✓', HIJAU, '#fff', 22);
+  }
+  const ms = backOut(prog(T, 12.58, 12.84));
+  if (ms > 0) { ctx.save(); ctx.translate(W / 2, 800); ctx.scale(ms, ms); ctx.rotate(-.04); ctx.fillStyle = AMBER; roundRect(-260, -46, 520, 92, 30); ctx.fill(); ctx.font = '900 42px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#1A1838'; ctx.fillText('MAKE SENSE, KAN?', 0, 15); ctx.restore(); }
+}
+function S_kaidah(T) {
+  ruang(T, .6);
+  const g = ctx.createRadialGradient(W / 2, 470, 30, W / 2, 470, 460); g.addColorStop(0, 'rgba(255,236,180,.6)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  rays(W / 2, 470, 60, 620, 14, .35 * prog(T, 17.4, 18.4), '255,226,150', T * .08);
+  headline('DALAM USHUL FIQIH', ['KAIDAH KETUJUH'], T, 13.8, 0, { y: 150, size: 54, bigColor: B.daunGelap, smallColor: '#7A6A5C' });
+  dalilCard(T, 17.4, 'KAIDAH USHUL FIQIH', ['النَّهْيُ عَنِ الشَّيْءِ', 'أَمْرٌ بِضِدِّهِ'], ['“Larangan terhadap sesuatu adalah perintah', 'untuk melakukan kebalikannya.”'], 'Kaidah ushul fiqih',
+    { y: 340, h: 340, arabSize: 44, bg: 'rgba(35,69,54,.95)' });
+  rifdaAt(T, 92, 13.8, 24.5, 'chest');
+}
+function S_sombong(T) {
+  ruang(T, .3);
+  dalilCard(T, 24.8, 'QS. AL-ISRA’: 37', ['وَلَا تَمْشِ فِي الْأَرْضِ مَرَحًا'], ['“Dan janganlah kamu berjalan', 'di muka bumi ini dengan sombong …”'], 'Terjemahan Kemenag RI', { y: 110, h: 270, arabSize: 40, bg: 'rgba(90,30,36,.95)' });
+  cermin(T, prog(T, 25.2, 25.8), 'JANGAN SOMBONG', 'RENDAH HATI', prog(T, 29.6, 30.1), { y: 690, armsKiri: 'fold', moodKiri: -.2, armsKanan: 'chest' });
+}
+function S_jujur(T) {
+  ruang(T, .5);
+  dalilCard(T, 33.3, 'QS. AL-MUTHAFFIFIN: 1', ['وَيْلٌ لِلْمُطَفِّفِينَ'], ['“Kecelakaan besarlah', 'bagi orang-orang yang curang.”'], 'Terjemahan Kemenag RI', { y: 110, h: 270, arabSize: 44, bg: 'rgba(90,30,36,.95)', alpha: 1 - prog(T, 37.0, 37.3) });
+  cermin(T, prog(T, 33.6, 34.2), 'JANGAN CURANG', 'JUJUR', prog(T, 35.4, 35.9), { y: 690, armsKiri: 'point', moodKiri: -.6, armsKanan: 'lift' });
+  // aura meter
+  const ak = backOut(prog(T, 37.3, 37.6));
+  if (ak > 0) { ctx.save(); ctx.translate(W / 2 + 140, 250); ctx.scale(ak * 1.3, ak * 1.3); ctx.fillStyle = HIJAU; roundRect(-110, -32, 220, 64, 32); ctx.fill(); ctx.font = '900 28px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('AURA +100', 0, 10); ctx.restore(); }
+  stempel(W / 2 - 170, 250, prog(T, 37.6, 37.85), '− AURA', MERAH, 34, -.12);
+}
+function S_login(T) {
+  ruang(T, .2);
+  headline('SETIAP ADA LARANGAN', ['JANGAN FOKUS', 'DI “JANGAN”-NYA'], T, 39.5, 42.0, { y: 150, size: 48, bigColor: '#8C3B2E', smallColor: '#5F7A68' });
+  headline('TAPI LANGSUNG', ['LOG IN!'], T, 42.2, 0, { y: 150, size: 64, bigColor: '#2A4C38', smallColor: '#5F7A68' });
+  // kata JANGAN dicoret → tombol LOG IN ditekan
+  const jk = backOut(prog(T, 39.8, 40.2)) * (1 - prog(T, 42.0, 42.3));
+  if (jk > 0) { ctx.save(); ctx.translate(W / 2 + 40, 560); ctx.scale(jk, jk); ctx.font = '900 96px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = MERAH; ctx.fillText('JANGAN', 0, 30); const c = prog(T, 41.2, 41.6); ctx.strokeStyle = '#2A2233'; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(-200 + 400 * c, 0); ctx.stroke(); ctx.restore(); }
+  const bk = backOut(prog(T, 42.3, 42.7)), press = T > 43.4 && T < 43.6 ? .92 : 1;
+  if (bk > 0) {
+    ctx.save(); ctx.translate(W / 2 + 40, 560); ctx.scale(bk * press, bk * press);
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; roundRect(-200, -56, 400, 120, 40); ctx.fill();
+    ctx.fillStyle = HIJAU; roundRect(-200, -64, 400, 120, 40); ctx.fill();
+    ctx.font = '900 40px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('LOG IN ▸', 0, -6); ctx.font = '700 20px Inter'; ctx.fillText('lakuin kebalikannya', 0, 30);
+    ctx.restore();
+    if (T > 43.5) rays(W / 2 + 40, 560, 60, 360, 14, .5 * (1 - prog(T, 44.4, 45.2)), '140,220,150', T * .2);
+  }
+  rifdaAt(T, 92, 39.5, 45.4, 'point');
+}
+function S_komentar(T) {
+  ruang(T, .4);
+  const ck = backOut(prog(T, 45.8, 46.2));
+  if (ck > 0) {
+    ctx.save(); ctx.translate(W / 2 + 30, 420); ctx.scale(ck, ck);
+    ctx.fillStyle = '#FFFFFF'; roundRect(-270, -110, 540, 220, 34); ctx.fill(); ctx.beginPath(); ctx.moveTo(-150, 108); ctx.lineTo(-190, 160); ctx.lineTo(-90, 108); ctx.fill();
+    ctx.font = '900 28px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#2A2233'; ctx.fillText('Larangan apa lagi', 0, -40); ctx.fillText('yang nyuruh kita', 0, -2); ctx.fillStyle = HIJAU; ctx.fillText('UPGRADE DIRI?', 0, 38);
+    ctx.restore();
+  }
+  pil(W / 2 + 30, 640, prog(T, 49.0, 49.3), 'SPILL DI KOLOM KOMENTAR', '#5B4A9A', '#fff', 24);
+  drawDafa(W / 2 + 150, 884, .9, { t: T, mood: 1, arms: 'lift', up: easeOut(prog(T, 47.0, 47.6)), target: 'cheer' });
+  rifdaAt(T, 92, 45.8, 51.6, 'point');
+}
+// kartu penutup: ajakan DM "mau" untuk kumpulan faedah ushul fiqih (gaya S_outro)
+function S_dm(T) {
+  const t0 = VO_END;
+  ctx.fillStyle = B.daunGelap; ctx.fillRect(0, 0, W, H);
+  const gy = 900, rise = easeOut(prog(T, t0 + .1, t0 + 1.3));
+  const g = ctx.createRadialGradient(W / 2, gy, 30, W / 2, gy, 520); g.addColorStop(0, 'rgba(242,181,68,.35)'); g.addColorStop(1, 'rgba(242,181,68,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  sunrise(W / 2, gy + (1 - rise) * 60, 170, 'rgba(242,181,68,.30)');
+  particles(T, 'rgba(255,240,200,1)', 26, 41, .6);
+  ctx.fillStyle = shade(B.daunGelap, .12); ctx.fillRect(0, gy, W, H);
+  [[90, .8], [640, .7], [170, .5], [560, .45]].forEach(([x, sc]) => sprout(x, gy + 4, sc * backOut(prog(T, t0 + .5, t0 + 1.3)), '#8BD17C', '#8BD17C'));
+  const ik = backOut(prog(T, t0 + .2, t0 + .9));
+  ctx.save(); ctx.translate(W / 2, 200); ctx.scale(ik * .8, ik * .8); iconB(0, 0, 88); ctx.restore();
+  headline('MAU KUMPULAN FAEDAH USHUL FIQIH?', ['DM “MAU”'], T, t0 + .4, 0, { y: 320, size: 72 });
+  pil(W / 2, 500, prog(T, t0 + 2.0, t0 + 2.4), 'link dikirim lewat DM', '#2F6247', '#fff', 22);
+  const fk = backOut(prog(T, t0 + 6.6, t0 + 7.0)) * (1 + .05 * Math.sin(T * 6));
+  if (fk > 0) { ctx.save(); ctx.translate(W / 2, 580); ctx.scale(fk, fk); ctx.rotate(-.05); ctx.fillStyle = B.fajar; roundRect(-130, -36, 260, 72, 36); ctx.fill(); ctx.font = '900 34px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = B.daunGelap; ctx.fillText('100% FREE', 0, 12); ctx.restore(); }
+  const rk = easeOut(prog(T, t0 + .5, t0 + 1.3));
+  drawRifda(W / 2, gy + 6 + (1 - rk) * 80, 1.45, { arms: 'wave', mood: 1, talk: talkVO(T) });
+  ctx.save(); ctx.globalAlpha = prog(T, t0 + 1, t0 + 1.6); ctx.textAlign = 'center'; ctx.font = '700 24px Inter'; ctx.fillStyle = '#F6EBD5'; ctx.fillText(HANDLE, W / 2, gy + 70); ctx.restore();
+}
+
+const SCENES = [[0, S_hook], [HOOK_END, S_kaidah], [24.45, S_sombong], [33.0, S_jujur], [39.1, S_login], [45.42, S_komentar], [VO_END, S_dm]];
+
+// efek suara (detik video) untuk audio.py
+function sfxEvents() {
+  const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
+  // hook: boom judul, "jangan scrolling", boom "tapi secara nggak langsung" → tidur, guru, "make sense" ding
+  add(HOOK_HITS[0], 'hook_boom'); add(2.0, 'pop'); add(4.4, 'riser'); add(HOOK_HITS[1], 'hook_boom'); add(5.9, 'pop');
+  add(8.0, 'scratch'); add(10.5, 'pop'); add(12.58, 'ding'); add(12.6, 'pop');
+  SCENES.slice(2).forEach(([c]) => add(c - .6, 'whoosh'));
+  add(HOOK_END - .4, 'whoosh_soft'); add(13.8, 'title'); add(17.4, 'title');
+  add(24.8, 'title'); add(25.2, 'place', { k: 2 }); add(29.6, 'sprout'); add(29.8, 'balance');
+  add(33.3, 'title'); add(33.6, 'place', { k: 3 }); add(35.4, 'sprout'); add(37.3, 'ding'); add(37.6, 'set_down');
+  add(39.5, 'title'); add(41.2, 'scratch'); add(42.3, 'pop'); add(43.45, 'unlock');
+  add(45.8, 'pop'); add(49.0, 'pop');
+  add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 2.0, 'pop'); add(VO_END + 6.6, 'ding'); add(VO_END + 6.7, 'place', { k: 5 });
+  return ev.sort((a, b) => a.t - b.t);
+}
+// cover: gaya asli seri (ep03–ep08), semua isi di zona potongan 4:5
+function drawCover() {
+  NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  ruang(3, .3);
+  const g = ctx.createRadialGradient(470, 830, 30, 470, 830, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.translate(395, 860); ctx.scale(.8, .8); ctx.translate(-360, -860);
+  cermin(3, 1, 'JANGAN SOMBONG', 'RENDAH HATI', 1, { y: 860, armsKiri: 'fold', moodKiri: -.2, armsKanan: 'chest' }); ctx.restore();
+  const tg = ctx.createLinearGradient(0, 0, 0, 680); tg.addColorStop(0, 'rgba(35,69,54,.72)'); tg.addColorStop(.35, 'rgba(35,69,54,.6)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 680);
+  iconB(56, 245, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 252);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 80px Inter'; ctx.fillStyle = AMBER; ctx.fillText('DILARANG =', 40, 380); ctx.fillText('DISURUH?', 40, 466);
+  ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('Rahasia di balik kata “jangan”', 44, 526);
+  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kaidah Ushul Fiqih #7', 44, 568);
+  ctx.shadowBlur = 0;
+  drawRifda(95, 1068, .95, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+}
+exportEpisode();
+</script>
+</body></html>
