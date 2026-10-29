@@ -150,7 +150,7 @@ Struktur adegan ep05 yang terbukti bagus (sesuaikan dengan isi VO):
 | Contoh nyata | kitab terbuka → dalil → ilustrasi proses | `kitab`, `dalilCard`, `pil`, `stempel` |
 | Contoh kedua | situasi sehari-hari, dicoret/dicap | `stempel`, Dafa |
 | Penutup | perumpamaan diulang + ajakan komentar | `rifdaAt(..., 'point')` |
-| Follow | dari `VO_END` | `S_follow` (Rifda ikut bicara) |
+| Follow / DM | dari `VO_END` (otomatis di kalimat ajakan follow atau DM) | `S_follow`, atau `S_dm` bila VO mengajak DM "mau" (ep09, ep10) |
 
 Sebelum menulis, baca `references/pelajaran.md`. Isinya kesalahan yang sudah pernah terjadi
 (bentrok nama variabel, label yang menabrak caption, dan sebagainya).

@@ -5,7 +5,7 @@
 Hasil: render.html (kerangka pola ep05: hook, kaidah, kartu follow + CAPTIONS dari transkrip), vo_env.js, cover.js.
 VO tidak disalin ke repo; simpan path-nya untuk tahap audio.
 """
-import argparse, json, os, shutil, subprocess, sys
+import argparse, json, os, re, shutil, subprocess, sys
 
 ap = argparse.ArgumentParser()
 ap.add_argument('video_dir'); ap.add_argument('slug'); ap.add_argument('vo')
@@ -27,7 +27,7 @@ if a.transkrip:
 else:
     caps = [[0.2, min(3.0, dur), 'TODO: isi caption dari naskah']]
 # VO_END = mulai kalimat ajakan follow (kartu follow tampil saat Vonya mengucapkannya)
-fol = next((c for c in caps if 'follow' in c[2].lower()), None)
+fol = next((c for c in caps if 'follow' in c[2].lower() or re.search(r'\bdm\b', c[2].lower())), None)   # ajakan follow / DM
 vo_end = fol[0] if fol else dur
 if fol and fol[1] - fol[0] > 5:
     # potongan panjang: ajakan follow biasanya kalimat terakhir → pakai jeda (>= 0,25 dtk) terakhir
@@ -43,8 +43,10 @@ if fol and fol[1] - fol[0] > 5:
             if (j - i) * .02 >= .15 and fol[0] + 1 < i * .02 and j * .02 <= fol[1] - 2: gaps.append(j * .02)
             i = j
         else: i += 1
-    # kalimat ajakan follow ±3,8 detik (VO 1,25x): pilih jeda yang sisa durasinya paling dekat ke situ
-    if gaps: vo_end = round(min(gaps, key=lambda g: abs(fol[1] - g - 3.8)) - .15, 2)
+    # kalimat ajakan follow ±3,8 detik, ajakan DM ±8,7 detik (VO 1,25x): pilih jeda (atau awal potongan)
+    # yang sisa durasinya paling dekat ke situ
+    target = 3.8 if 'follow' in fol[2].lower() else 8.7
+    vo_end = round(min(gaps + [fol[0] + .15], key=lambda g: abs(fol[1] - g - target)) - .15, 2)
 caps = [c for c in caps if c[0] < vo_end]
 cap_js = '[\n' + ''.join(f'  [{s:.2f}, {e:.2f}, {json.dumps(t, ensure_ascii=False)}],\n' for s, e, t in caps) + ']'
 html = open(os.path.join(here, '..', 'assets', 'template.html')).read()

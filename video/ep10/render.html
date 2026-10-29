@@ -1,0 +1,248 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="../karakter/karakter.js"></script>
+<script src="../branding/brand.js"></script>
+<script src="vo_env.js"></script>
+<script>
+// Faedah Harian · "Struk Amal" (kaidah: al-aṣlu fin-nahyil-muṭlaqi yaqtaḍil-fasād fil-‘ibādāt wal-mu‘āmalāt).
+// Pola mengikuti ep05. Waktu animasi = waktu VO (detik; VO sudah 1.25x dan jeda dipotong).
+// Koordinat logis 720×1280, dirender 1.5× ke 1080×1920.
+const W = 720, H = 1280, SS = 1.5;
+const VO_END = 93.45, DURATION = 103.72;   // VO_END = mulai ajakan "DM 'mau'" → kartu DM
+const HOOK_HITS = [0.42, 18.68, 26.06], HOOK_END = 20.64;   // hook: judul, "dinolin", "kena ban"; musik masuk di "pasti batal"
+const cv = document.getElementById('c'); ctx = cv.getContext('2d');
+let NT = 0;
+</script>
+<script src="../engine/lib.js"></script>
+<script>
+// ---------- naskah ----------
+const CAPTIONS = [
+  [0.86, 3.6, 'Pernah nggak sih, kita udah *capek-capek* ngelakuin sesuatu,'],
+  [3.92, 5.46, 'eh ujung-ujungnya nggak dianggap,'],
+  [5.74, 8.52, 'alias *auto batal* gara-gara melanggar *satu aturan*?'],
+  [8.96, 10.16, '*Wait, let me jelasin.*'],
+  [10.66, 12.38, 'Misalnya pas lagi ujian di sekolah,'],
+  [12.64, 14.24, 'pengawas bilang, *“Dilarang nyontek!”*'],
+  [14.56, 16.3, 'Terus kita nekat nyontek.'],
+  [16.48, 18.46, 'Kira-kira nilai ujian kita tetap dihitung,'],
+  [18.68, 20.0, 'atau langsung *dinolin*?'],
+  [20.64, 22.8, 'Pasti langsung *nggak sah* alias *batal*, kan?'],
+  [23.26, 25.76, 'Atau pas main game, kita pakai *cheat* yang dilarang sistem,'],
+  [26.06, 27.92, 'tahu-tahu kena *ban*, dan progress-nya *hangus*.'],
+  [28.26, 29.52, '*Make sense, kan?*'],
+  [29.66, 33.06, 'Nah, di dalam ushul fiqih, konsep ini punya kaidah yang valid dan tegas banget:'],
+  [33.54, 38.24, '*Al-aṣlu fin-nahyil-muṭlaqi yaqtaḍil-fasāda fil-‘ibādāti wal-mu‘āmalāt.*'],
+  [38.88, 41.5, 'Artinya, hukum asal dari *larangan yang mutlak*'],
+  [41.5, 44.28, 'bikin ibadah atau transaksi kita jadi *rusak* alias *nggak sah*.'],
+  [44.8, 48.92, 'Jadi, kalau larangan itu nempel langsung di *inti* ibadah atau barangnya,'],
+  [49.06, 51.12, 'kayak puasa pas hari raya *Idul Fitri*,'],
+  [51.4, 54.1, 'atau transaksi *riba* dan jual beli *miras*,'],
+  [54.38, 56.08, 'mau dilakukan jam berapa pun,'],
+  [56.28, 58.52, 'itu otomatis *haram* dan *batal* dari awal.'],
+  [59.08, 60.48, 'Tapi ada *plot twist*-nya nih.'],
+  [60.6, 63.34, 'Kaidah tadi kan bilang *hukum asalnya*.'],
+  [63.52, 66.02, 'Artinya, kalau transaksinya sebenarnya *bersih*,'],
+  [66.38, 68.02, 'tapi dilakukannya di *waktu yang salah*.'],
+  [68.44, 71.66, 'Contoh, cowok yang malah transaksi beli kopi pas udah *azan Jumat*.'],
+  [72.28, 74.64, 'Jual beli kopinya sih tetap *sah* karena barangnya halal,'],
+  [74.96, 77.8, 'tapi orangnya tetap dapat *dosa* karena melanggar waktu Jumat.'],
+  [78.4, 81.1, 'Jadi, setiap ada larangan di ibadah atau muamalah,'],
+  [81.32, 83.62, 'jangan coba-coba *diterabas* ya.'],
+  [83.74, 86.72, 'Langsung *log in*, ikutin aturannya, biar amal dan usaha kita benar-benar *clean*.'],
+  [87.02, 91.52, 'Menurut kalian, contoh larangan apa lagi nih yang langsung bikin ibadah atau transaksi jadi *batal*?'],
+  [91.86, 93.32, '*Spill* di kolom komentar ya.'],
+];
+
+// ---------- elemen episode ----------
+const HIJAU = '#4E8B5F', MERAH = '#E2574C', EMAS = '#F2B544';
+function ruang(T, warm = 0) {
+  sky([[0, mix('#EAF2EC', '#FFF1DA', warm)], [1, mix('#CFE3D6', '#F4D9AE', warm)]]);
+  particles(T, 'rgba(255,214,140,1)', 18, 43, .3);
+  ctx.fillStyle = mix('#7FA98A', '#C98E5A', warm); ctx.fillRect(0, 884, W, H); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(0, 884, W, 4);
+}
+// struk amal: kertas berbaris dengan tepi bawah bergerigi; cap SAH/BATAL di atasnya
+function struk(x, y, s, k, judul, baris, cap) {
+  if (k <= 0) return; const sc = backOut(clamp(k)) * s;
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc); ctx.globalAlpha = clamp(k * 2);
+  ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.beginPath(); ctx.moveTo(-96, -146); ctx.lineTo(104, -146); ctx.lineTo(104, 146); for (let i = 0; i <= 10; i++) ctx.lineTo(104 - i * 20, 146 + (i % 2 ? 12 : 0)); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FFFDF7'; ctx.beginPath(); ctx.moveTo(-100, -150); ctx.lineTo(100, -150); ctx.lineTo(100, 140); for (let i = 0; i <= 10; i++) ctx.lineTo(100 - i * 20, 140 + (i % 2 ? 12 : 0)); ctx.closePath(); ctx.fill();
+  ctx.textAlign = 'center'; ctx.font = '900 20px Inter'; ctx.fillStyle = '#2A2233'; ctx.fillText(judul, 0, -110);
+  ctx.strokeStyle = 'rgba(42,34,51,.3)'; ctx.setLineDash([5, 5]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-80, -94); ctx.lineTo(80, -94); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font = '700 15px Inter'; ctx.fillStyle = '#7A6A5C'; ctx.textAlign = 'left'; (baris || []).forEach((l, i) => ctx.fillText(l, -80, -64 + i * 26));
+  ctx.fillStyle = 'rgba(42,34,51,.15)'; for (let i = 0; i < 3; i++) ctx.fillRect(-80, 30 + i * 22, i === 2 ? 90 : 160, 8);
+  ctx.restore();
+  if (cap) stempel(x, y + 10 * s, cap[0], cap[1], cap[2], 34 * s, -.16);
+}
+function hpGame(x, y, s, cheat) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = '#2A2233'; roundRect(-150, -84, 300, 168, 22); ctx.fill(); ctx.fillStyle = '#3B6FA8'; roundRect(-136, -72, 272, 144, 12); ctx.fill();
+  ctx.fillStyle = '#7FC36B'; ctx.fillRect(-136, 30, 272, 42); ctx.fillStyle = '#F2B544'; ctx.beginPath(); ctx.arc(-60, 10, 16, 0, 6.28); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.85)'; roundRect(-120, -60, 150, 16, 8); ctx.fill(); ctx.fillStyle = '#4E8B5F'; roundRect(-120, -60, 150 * (1 - cheat), 16, 8); ctx.fill();
+  ctx.font = '800 12px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('PROGRESS', 40, -48);
+  ctx.restore();
+}
+function masjid(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = '#4E8B5F'; ctx.fillRect(-60, -40, 120, 70); ctx.beginPath(); ctx.arc(0, -40, 46, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#F2B544'; ctx.beginPath(); ctx.arc(0, -96, 7, 0, 6.28); ctx.fill();
+  ctx.fillStyle = '#2F6247'; ctx.fillRect(74, -96, 18, 126); ctx.beginPath(); ctx.moveTo(70, -96); ctx.lineTo(83, -124); ctx.lineTo(96, -96); ctx.fill();
+  ctx.fillStyle = '#FFFDF7'; roundRect(-16, -6, 32, 36, [16, 16, 0, 0]); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; [0, 1, 2].forEach(i => { const p = ((NT * .8 + i / 3) % 1); ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(83, -110, 12 + p * 50, -.8, .8); ctx.stroke(); }); ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// ---------- adegan ----------
+function latarHook(T, merah = 0) {
+  sky([[0, mix('#14324A', '#3A1F2A', merah)], [1, mix('#1E4A5E', '#5A2A2A', merah)]]);
+  rays(W / 2, 420, 40, 900, 18, .22 + .3 * hookPunch(T), merah > .5 ? '255,140,120' : '120,200,255', T * .15);
+  particles(T, 'rgba(220,235,255,1)', 22, 5, .8);
+  ctx.fillStyle = mix('#10283A', '#2A1416', merah); ctx.fillRect(0, 884, W, H);
+}
+function S_hook(T) {
+  latarHook(T, prog(T, 6.8, 7.1));
+  const hk = backOut(prog(T, .42, .75));
+  if (hk > 0) {
+    ctx.save(); ctx.translate(W / 2, 200); ctx.scale(hk, hk);
+    ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 20;
+    ctx.font = '900 30px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('UDAH CAPEK-CAPEK,', 0, -36);
+    ctx.font = '900 76px Inter'; ctx.fillStyle = AMBER; ctx.fillText('AUTO BATAL?', 0, 48); ctx.restore();
+  }
+  struk(W / 2 + 120, 560, 1.0, prog(T, 2.0, 2.4), 'STRUK AMAL', ['usaha: 100%', 'capek: banget'], [prog(T, 6.9, 7.15), 'BATAL', MERAH]);
+  const sweat = T > 1.5 && T < 6.8;
+  drawDafa(170, 884, .95, { t: T, mood: T > 6.9 ? -.8 : .2, sad: prog(T, 7.0, 7.5), arms: sweat ? 'lift' : 'rest', up: 1, target: 'hold' });
+  if (sweat) { ctx.fillStyle = '#9FD3E8'; [0, 1].forEach(i => { const p = ((T * 1.2 + i * .5) % 1); ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.ellipse(210 + i * 14, 700 + p * 40, 5, 8, 0, 0, 6.28); ctx.fill(); }); ctx.globalAlpha = 1; }
+}
+function S_ujian(T) {
+  latarHook(T, prog(T, 18.6, 18.9));
+  headline('CONTOH 1', ['UJIAN SEKOLAH'], T, 9.0, 0, { y: 150, size: 54, bigColor: AMBER, smallColor: '#fff' });
+  // kertas ujian dengan nilai
+  ctx.save(); ctx.translate(W / 2, 480); const pk = backOut(prog(T, 10.7, 11.1)); ctx.scale(pk, pk);
+  ctx.fillStyle = '#FFFDF7'; roundRect(-150, -130, 300, 260, 12); ctx.fill(); ctx.fillStyle = 'rgba(42,34,51,.15)'; for (let i = 0; i < 6; i++) ctx.fillRect(-120, -70 + i * 30, i % 2 ? 180 : 240, 9);
+  ctx.font = '900 20px Inter'; ctx.textAlign = 'left'; ctx.fillStyle = '#2A2233'; ctx.fillText('LEMBAR UJIAN', -120, -94);
+  ctx.strokeStyle = MERAH; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(95, -80, 40, 0, 6.28); ctx.stroke();
+  ctx.font = '900 44px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = MERAH; ctx.fillText(T > 18.68 ? '0' : '?', 95, -64);
+  ctx.restore();
+  figure(140, 884, .9, { pose: 'stand', robe: '#5A6B8C', wear: 'kopiah', capColor: '#2B2B33', arms: T > 12.6 ? 'point' : 'fold', mood: T > 18.7 ? -.5 : .2, look: .5 });
+  pil(170, 650, prog(T, 12.64, 12.94), 'DILARANG NYONTEK!', MERAH, '#fff', 20);
+  drawDafa(560, 884, .9, { t: T, mood: T > 18.7 ? -.9 : .4, look: T > 14.5 && T < 18 ? -1 : -.3, sad: prog(T, 18.8, 19.3) });
+  pil(560, 650, prog(T, 14.6, 14.9) * (1 - prog(T, 18.4, 18.7)), 'nekat nyontek…', '#5F7A88', '#fff', 18);
+  stempel(W / 2, 620, prog(T, 18.68, 18.93), 'DINOLIN!', MERAH, 46, -.12);
+}
+function S_game(T) {
+  latarHook(T, prog(T, 26.0, 26.3));
+  headline('CONTOH 2', ['MAIN GAME'], T, 23.3, 0, { y: 150, size: 54, bigColor: AMBER, smallColor: '#fff' });
+  stempel(W / 2, 330, prog(T, 20.7, 20.95) * (1 - prog(T, 22.9, 23.2)), 'NGGAK SAH = BATAL', MERAH, 40, -.08);
+  hpGame(W / 2, 520, 1.3, easeInOut(prog(T, 26.1, 27.6)));
+  pil(W / 2 - 120, 680, prog(T, 23.9, 24.2), 'pakai CHEAT', '#8C3B2E', '#fff', 22);
+  stempel(W / 2 + 80, 520, prog(T, 26.06, 26.31), 'BANNED', MERAH, 54, -.14);
+  pil(W / 2 + 120, 680, prog(T, 27.0, 27.3), 'progress hangus', '#2A2233', '#fff', 20);
+  drawDafa(W / 2, 884, .85, { t: T, mood: T > 26 ? -.9 : .8, sad: prog(T, 26.2, 26.7), look: 0 });
+}
+function S_kaidah(T) {
+  ruang(T, .6);
+  const g = ctx.createRadialGradient(W / 2, 470, 30, W / 2, 470, 460); g.addColorStop(0, 'rgba(255,236,180,.6)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  rays(W / 2, 470, 60, 620, 14, .35 * prog(T, 33.4, 34.4), '255,226,150', T * .08);
+  const ms = backOut(prog(T, 28.3, 28.56)) * (1 - prog(T, 29.5, 29.8));
+  if (ms > 0) { ctx.save(); ctx.translate(W / 2, 500); ctx.scale(ms, ms); ctx.rotate(-.04); ctx.fillStyle = AMBER; roundRect(-260, -46, 520, 92, 30); ctx.fill(); ctx.font = '900 42px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#14324A'; ctx.fillText('MAKE SENSE, KAN?', 0, 15); ctx.restore(); }
+  headline('DALAM USHUL FIQIH', ['KAIDAH KEDELAPAN'], T, 29.8, 0, { y: 150, size: 52, bigColor: B.daunGelap, smallColor: '#7A6A5C' });
+  dalilCard(T, 33.4, 'KAIDAH USHUL FIQIH', ['الأَصْلُ فِي النَّهْيِ الْمُطْلَقِ يَقْتَضِي', 'الْفَسَادَ فِي الْعِبَادَاتِ وَالْمُعَامَلَاتِ'], ['“Hukum asal larangan yang mutlak: membuat', 'ibadah dan muamalah rusak (tidak sah).”'], 'Kaidah ushul fiqih',
+    { y: 340, h: 340, arabSize: 34, bg: 'rgba(35,69,54,.95)' });
+  rifdaAt(T, 92, 29.8, 44.4, 'chest');
+}
+function S_inti(T) {
+  ruang(T, .3);
+  // tiga dalil bergantian di atas
+  const c1 = 1 - prog(T, 48.9, 49.1), c2 = prog(T, 49.0, 49.1) * (1 - prog(T, 51.2, 51.4)), c3 = prog(T, 51.3, 51.4) * (1 - prog(T, 58.8, 59.1));
+  if (c1 > 0) dalilCard(T, 45.0, 'HR. AL-BUKHARI NO. 1991 · DARI ABU SA‘ID', ['نَهَى النَّبِيُّ صلى الله عليه وسلم', 'عَنْ صَوْمِ يَوْمِ الْفِطْرِ وَالنَّحْرِ'], ['“Nabi melarang puasa pada hari', 'Idul Fitri dan Idul Adha.”'], 'Hadis shahih', { y: 110, h: 300, arabSize: 32, bg: 'rgba(90,30,36,.95)', alpha: c1 });
+  if (c2 > 0) dalilCard(T, 49.0, 'QS. AL-BAQARAH: 275', ['وَأَحَلَّ اللَّهُ الْبَيْعَ وَحَرَّمَ الرِّبَا'], ['“… padahal Allah telah menghalalkan', 'jual beli dan mengharamkan riba …”'], 'Terjemahan Kemenag RI', { y: 110, h: 300, arabSize: 36, bg: 'rgba(90,30,36,.95)', alpha: c2 });
+  if (c3 > 0) dalilCard(T, 51.3, 'HR. AL-BUKHARI NO. 2236 · DARI JABIR', ['إِنَّ اللَّهَ وَرَسُولَهُ حَرَّمَ بَيْعَ الْخَمْرِ'], ['“Sesungguhnya Allah dan Rasul-Nya', 'mengharamkan jual beli khamr.”'], 'Hadis shahih', { y: 110, h: 300, arabSize: 34, bg: 'rgba(90,30,36,.95)', alpha: c3 });
+  pil(W / 2, 460, prog(T, 45.6, 45.9) * (1 - prog(T, 58.8, 59.1)), 'LARANGAN DI INTINYA', '#8C3B2E', '#fff', 20);
+  [[140, 49.2, 'PUASA', ['hari raya', 'Idul Fitri'], 50.3], [360, 51.5, 'RIBA', ['bunga', 'pinjaman'], 52.6], [580, 52.8, 'MIRAS', ['jual beli', 'khamr'], 53.8]].forEach(([x, a, j, b, c]) => struk(x, 650, .62, prog(T, a, a + .35), j, b, [prog(T, c, c + .25), 'BATAL', MERAH]));
+  pil(W / 2, 860, prog(T, 54.4, 54.7) * (1 - prog(T, 58.8, 59.1)), 'jam berapa pun → batal dari awal', '#2A2233', '#fff', 19);
+  const pt = backOut(prog(T, 59.08, 59.34));
+  if (pt > 0) { ctx.save(); ctx.translate(W / 2, 260); ctx.scale(pt, pt); ctx.rotate(-.05); ctx.fillStyle = AMBER; roundRect(-230, -50, 460, 100, 30); ctx.fill(); ctx.font = '900 50px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#14324A'; ctx.fillText('PLOT TWIST!', 0, 17); ctx.restore(); }
+  pil(W / 2, 380, prog(T, 60.7, 61.0), 'kata kuncinya: HUKUM ASAL', HIJAU, '#fff', 22);
+}
+function S_jumat(T) {
+  ruang(T, .5);
+  dalilCard(T, 63.6, 'QS. AL-JUMU‘AH: 9', ['إِذَا نُودِيَ لِلصَّلَاةِ مِنْ يَوْمِ الْجُمُعَةِ', 'فَاسْعَوْا إِلَىٰ ذِكْرِ اللَّهِ وَذَرُوا الْبَيْعَ'], ['“… apabila diseru untuk menunaikan shalat Jum’at,', 'maka bersegeralah kamu kepada mengingat Allah', 'dan tinggalkanlah jual beli …”'], 'Terjemahan Kemenag RI',
+    { y: 100, h: 350, arabSize: 30, bg: 'rgba(30,74,94,.95)' });
+  masjid(150, 640, backOut(prog(T, 68.5, 68.9)));
+  pil(150, 760, prog(T, 69.6, 69.9), 'AZAN JUMAT', HIJAU, '#fff', 20);
+  struk(430, 640, .8, prog(T, 69.0, 69.4), 'BELI KOPI', ['barang: halal', 'akad: lengkap'], [prog(T, 73.2, 73.45), 'SAH', HIJAU]);
+  drawDafa(600, 884, .85, { t: T, mood: T > 75.2 ? -.6 : .5, sad: prog(T, 75.3, 75.8), look: -.4, arms: 'lift', up: 1, target: 'hold' });
+  stempel(600, 700, prog(T, 75.2, 75.45), 'DOSA', MERAH, 34, .12);
+}
+function S_login(T) {
+  ruang(T, .2);
+  headline('JANGAN COBA-COBA', ['DITERABAS!'], T, 78.5, 83.5, { y: 150, size: 62, bigColor: '#8C3B2E', smallColor: '#5F7A68' });
+  headline('IKUTIN ATURANNYA', ['LOG IN!'], T, 83.7, 0, { y: 150, size: 64, bigColor: '#2A4C38', smallColor: '#5F7A68' });
+  const bk = backOut(prog(T, 83.8, 84.2)), press = T > 84.8 && T < 85.0 ? .92 : 1;
+  if (bk > 0) {
+    ctx.save(); ctx.translate(W / 2 + 40, 520); ctx.scale(bk * press, bk * press);
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; roundRect(-200, -56, 400, 120, 40); ctx.fill();
+    ctx.fillStyle = HIJAU; roundRect(-200, -64, 400, 120, 40); ctx.fill();
+    ctx.font = '900 40px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('LOG IN ▸', 0, -6); ctx.font = '700 20px Inter'; ctx.fillText('ikutin aturannya', 0, 30);
+    ctx.restore();
+    if (T > 84.9) rays(W / 2 + 40, 520, 60, 360, 14, .5 * (1 - prog(T, 85.8, 86.6)), '140,220,150', T * .2);
+  }
+  struk(W / 2 + 40, 520, .9, prog(T, 79.0, 79.4) * (1 - prog(T, 83.4, 83.8)), 'AMAL & USAHA', ['aturan: ✕ diterabas'], [prog(T, 81.5, 81.75) * (1 - prog(T, 83.4, 83.8)), 'BATAL', MERAH]);
+  pil(W / 2 + 40, 700, prog(T, 85.6, 85.9), 'CLEAN ✓', HIJAU, '#fff', 26);
+  rifdaAt(T, 92, 78.5, 86.8, 'point');
+}
+function S_komentar(T) {
+  ruang(T, .4);
+  const ck = backOut(prog(T, 87.2, 87.6));
+  if (ck > 0) {
+    ctx.save(); ctx.translate(W / 2 + 30, 420); ctx.scale(ck, ck);
+    ctx.fillStyle = '#FFFFFF'; roundRect(-270, -110, 540, 220, 34); ctx.fill(); ctx.beginPath(); ctx.moveTo(-150, 108); ctx.lineTo(-190, 160); ctx.lineTo(-90, 108); ctx.fill();
+    ctx.font = '900 28px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = '#2A2233'; ctx.fillText('Larangan apa lagi yang', 0, -40); ctx.fillText('bikin ibadah/transaksi', 0, -2); ctx.fillStyle = MERAH; ctx.fillText('JADI BATAL?', 0, 38);
+    ctx.restore();
+  }
+  pil(W / 2 + 30, 640, prog(T, 91.9, 92.2), 'SPILL DI KOLOM KOMENTAR', '#5B4A9A', '#fff', 24);
+  drawDafa(W / 2 + 150, 884, .9, { t: T, mood: 1, arms: 'lift', up: easeOut(prog(T, 88.5, 89.1)), target: 'cheer' });
+  rifdaAt(T, 92, 87.2, 93.4, 'point');
+}
+
+const SCENES = [[0, S_hook], [8.74, S_ujian], [20.32, S_game], [28.1, S_kaidah], [44.54, S_inti], [63.43, S_jumat], [78.02, S_login], [86.87, S_komentar], [VO_END, S_dm]];
+
+// efek suara (detik video) untuk audio.py
+function sfxEvents() {
+  const ev = [], add = (t, type, extra = {}) => ev.push({ t: +t.toFixed(3), type, ...extra });
+  // hook: boom judul, struk dicap BATAL; ujian: "dilarang nyontek", riser → boom "DINOLIN"; game: cap NGGAK SAH, cheat, boom BANNED
+  add(HOOK_HITS[0], 'hook_boom'); add(2.0, 'pop'); add(6.9, 'set_down'); add(6.95, 'sting');
+  add(10.7, 'pop'); add(12.64, 'scratch'); add(14.6, 'eyes'); add(18.13, 'riser'); add(HOOK_HITS[1], 'hook_boom');
+  add(20.7, 'set_down'); add(23.9, 'pop'); add(25.5, 'riser'); add(HOOK_HITS[2], 'hook_boom'); add(27.0, 'fall_short');
+  SCENES.slice(1).forEach(([c]) => add(c - .6, 'whoosh'));
+  add(28.3, 'ding'); add(29.8, 'title'); add(33.4, 'title');
+  add(45.0, 'title'); add(49.0, 'title'); add(51.3, 'title'); [50.3, 52.6, 53.8].forEach(t => add(t, 'set_down'));
+  [54.5, 55.0, 55.5, 56.0].forEach(t => add(t, 'tick')); add(59.08, 'scratch'); add(59.1, 'pop'); add(60.7, 'pop');
+  add(63.6, 'title'); add(68.5, 'place', { k: 2 }); add(69.0, 'pop'); add(73.2, 'set_down'); add(73.3, 'leaf_on'); add(75.2, 'set_down'); add(75.25, 'sting');
+  add(78.5, 'title'); add(81.5, 'set_down'); add(83.8, 'pop'); add(84.85, 'unlock'); add(85.6, 'sprout');
+  add(87.2, 'pop'); add(91.9, 'pop');
+  add(VO_END + .2, 'title'); add(VO_END + 1.0, 'leaf_on'); add(VO_END + 2.0, 'pop'); add(VO_END + 6.6, 'ding'); add(VO_END + 6.7, 'place', { k: 5 });
+  return ev.sort((a, b) => a.t - b.t);
+}
+// cover: gaya asli seri (ep03–ep09), semua isi di zona potongan 4:5
+function drawCover() {
+  NT = 0; ctx.setTransform(SS, 0, 0, SS, 0, 0); ctx.clearRect(0, 0, W, H);
+  ruang(3, .3);
+  const g = ctx.createRadialGradient(470, 830, 30, 470, 830, 420); g.addColorStop(0, 'rgba(255,236,180,.7)'); g.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  struk(350, 800, .9, 1, 'PUASA HARI RAYA', ['larangan', 'di intinya'], [1, 'BATAL', MERAH]);
+  struk(570, 850, .8, 1, 'BELI KOPI', ['saat azan', 'Jumat'], [1, 'SAH', HIJAU]);
+  const tg = ctx.createLinearGradient(0, 0, 0, 680); tg.addColorStop(0, 'rgba(35,69,54,.72)'); tg.addColorStop(.35, 'rgba(35,69,54,.6)'); tg.addColorStop(1, 'rgba(35,69,54,0)'); ctx.fillStyle = tg; ctx.fillRect(0, 0, W, 680);
+  iconB(56, 245, 28); ctx.font = '800 20px Inter'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('faedah harian', 94, 252);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 18;
+  ctx.font = '900 80px Inter'; ctx.fillStyle = AMBER; ctx.fillText('AMALMU', 40, 380); ctx.fillText('AUTO BATAL?', 40, 466);
+  ctx.font = '700 28px Inter'; ctx.fillStyle = '#fff'; ctx.fillText('Larangan yang bikin nggak sah', 44, 526);
+  ctx.font = '700 22px Inter'; ctx.fillStyle = CREAM; ctx.fillText('Kaidah Ushul Fiqih #8', 44, 568);
+  ctx.shadowBlur = 0;
+  drawRifda(105, 1068, 1.0, { arms: 'point', look: .6, mood: 1 });
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, H - 8, W, 8);
+}
+exportEpisode();
+</script>
+</body></html>

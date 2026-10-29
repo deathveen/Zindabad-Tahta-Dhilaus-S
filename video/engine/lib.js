@@ -310,6 +310,26 @@ function coverLapisan(warna = '35,69,54', sampai = 700) {
   const tg = ctx.createLinearGradient(0, 0, 0, sampai); tg.addColorStop(0, `rgba(${warna},.72)`); tg.addColorStop(.35, `rgba(${warna},.6)`); tg.addColorStop(1, `rgba(${warna},0)`);
   ctx.fillStyle = tg; ctx.fillRect(0, 0, W, sampai);
 }
+// kartu penutup ajakan DM "mau" (kumpulan faedah gratis), gaya S_outro; dipakai bila VO mengajak DM, bukan follow (ep09, ep10)
+function S_dm(T) {
+  const t0 = VO_END;
+  ctx.fillStyle = B.daunGelap; ctx.fillRect(0, 0, W, H);
+  const gy = 900, rise = easeOut(prog(T, t0 + .1, t0 + 1.3));
+  const g = ctx.createRadialGradient(W / 2, gy, 30, W / 2, gy, 520); g.addColorStop(0, 'rgba(242,181,68,.35)'); g.addColorStop(1, 'rgba(242,181,68,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  sunrise(W / 2, gy + (1 - rise) * 60, 170, 'rgba(242,181,68,.30)');
+  particles(T, 'rgba(255,240,200,1)', 26, 41, .6);
+  ctx.fillStyle = shade(B.daunGelap, .12); ctx.fillRect(0, gy, W, H);
+  [[90, .8], [640, .7], [170, .5], [560, .45]].forEach(([x, sc]) => sprout(x, gy + 4, sc * backOut(prog(T, t0 + .5, t0 + 1.3)), '#8BD17C', '#8BD17C'));
+  const ik = backOut(prog(T, t0 + .2, t0 + .9));
+  ctx.save(); ctx.translate(W / 2, 200); ctx.scale(ik * .8, ik * .8); iconB(0, 0, 88); ctx.restore();
+  headline('MAU KUMPULAN FAEDAH USHUL FIQIH?', ['DM “MAU”'], T, t0 + .4, 0, { y: 320, size: 72 });
+  pil(W / 2, 500, prog(T, t0 + 2.0, t0 + 2.4), 'link dikirim lewat DM', '#2F6247', '#fff', 22);
+  const fk = backOut(prog(T, t0 + 6.6, t0 + 7.0)) * (1 + .05 * Math.sin(T * 6));
+  if (fk > 0) { ctx.save(); ctx.translate(W / 2, 580); ctx.scale(fk, fk); ctx.rotate(-.05); ctx.fillStyle = B.fajar; roundRect(-130, -36, 260, 72, 36); ctx.fill(); ctx.font = '900 34px Inter'; ctx.textAlign = 'center'; ctx.fillStyle = B.daunGelap; ctx.fillText('100% FREE', 0, 12); ctx.restore(); }
+  const rk = easeOut(prog(T, t0 + .5, t0 + 1.3));
+  drawRifda(W / 2, gy + 6 + (1 - rk) * 80, 1.45, { arms: 'wave', mood: 1, talk: talkVO(T) });
+  ctx.save(); ctx.globalAlpha = prog(T, t0 + 1, t0 + 1.6); ctx.textAlign = 'center'; ctx.font = '700 24px Inter'; ctx.fillStyle = '#F6EBD5'; ctx.fillText(HANDLE, W / 2, gy + 70); ctx.restore();
+}
 function sceneFor(T) { let f = SCENES[0][1]; SCENES.forEach(([a, fn]) => { if (T >= a) f = fn; }); return f; }
 
 // ---------- susunan adegan & frame ----------

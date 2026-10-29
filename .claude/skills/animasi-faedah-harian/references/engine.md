@@ -85,6 +85,7 @@ Pose shalat:
 | `rifdaAt(T, x, a, b, arms, s=.82)` | Rifda masuk dari kiri ke x, bicara mengikuti VO, keluar di b |
 | `kitab(x, y, s, openK, ['BAB WUDHU', 'بَابُ الْوُضُوءِ'])` | kitab Bulughul Maram tertutup → terbuka di bab |
 | `S_follow(T)` | kartu follow + Rifda yang mulutnya bergerak (pakai bila ajakan follow masih diucapkan) |
+| `S_dm(T)` | kartu penutup ajakan **DM "MAU"** (link kumpulan faedah, "100% FREE") bila VO mengajak DM, bukan follow (ep09, ep10) |
 | `hexA(warna, alpha)` | warna hex → rgba |
 | `coverJudul([baris], sub, ket, {y, size})` | logo + judul cover gaya asli (kuning rata kiri, bayangan lembut, tanpa garis hitam) |
 | `coverLapisan(rgb, sampai=700)` | lapisan gelap tipis di atas latar cover agar judul terbaca |
