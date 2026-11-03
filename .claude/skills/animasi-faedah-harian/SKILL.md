@@ -11,7 +11,7 @@ sudah tercatat di `video/SOP.md`. Baca SOP itu sekali di awal sesi, karena itu y
 video konsisten sebagai satu seri.
 
 **Rujukan baku: `video/ep05/` ("Jembatan Kewajiban")**, episode yang dinilai pemilik akun paling
-bagus. Tiru polanya: VO 1,25× tanpa jeda panjang, **hook yang nendang** (boom, getar, kilat, cap,
+bagus. Tiru polanya: VO cepat (kini **200 kata/menit**) tanpa jeda panjang, **hook yang nendang** (boom, getar, kilat, cap,
 "KOK BISA?"), satu perumpamaan utama, contoh nyata dengan dalil, penutup dengan ajakan komentar,
 dan kartu follow saat Vonya mengajak follow. `new_episode.py` sudah membuat kerangka berpola ep05.
 Episode lama (`ep02`–`ep04`) jangan diubah; ep02 masih memakai salinan mesin lamanya sendiri.
@@ -29,14 +29,24 @@ Pemilik akun biasanya meminta **langsung dianimasikan** ("gas", "lalu animasikan
 lewati penantian di Tahap 3 dan sertakan storyboard sebagai tabel alur saat menyerahkan hasil.
 Tetap berhenti dan bertanya bila ada keraguan dalil (Tahap 2).
 
-### Tahap 0: Jernihkan, percepat VO 1,25×, dan potong jeda sunyi
+### Tahap 0: Jernihkan, atur tempo VO ke 200 kata/menit, dan potong jeda sunyi
 
-Pemilik akun ingin suara Vonya **dijernihkan** dan tempo VO **1,25×** untuk semua episode (sejak ep05; ep03–ep04 masih 1,2×).
-Lakukan ini paling awal, sebelum transkripsi, lalu pakai file hasilnya (bukan VO asli) di semua tahap berikutnya:
+Pemilik akun ingin suara Vonya **dijernihkan** dan tempo VO **200 kata per menit** (aturan sejak
+ep11; ep05–ep10 memakai 1,25× tetap, ep03–ep04 1,2×). Kecepatannya berbeda tiap VO, jadi dihitung
+dari jumlah kata. Lakukan ini paling awal, lalu pakai file hasilnya (bukan VO asli) di semua tahap
+berikutnya:
 
 ```bash
-.claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo.wav   # default 1.25
+# 1) siapkan sementara di 1,25× lalu transkripsi untuk menghitung kata
+.claude/skills/animasi-faedah-harian/scripts/prep_vo.sh vo_asli.ogg vo125.wav
+python3 -I .claude/skills/animasi-faedah-harian/scripts/transcribe.py vo125.wav transkrip125.json
+# 2) cari kecepatan sampai hasil akhir (setelah jeda dipotong) = 200 kata/menit
+.claude/skills/animasi-faedah-harian/scripts/tempo_wpm.sh vo_asli.ogg transkrip125.json vo.wav 200
 ```
+
+Pada kecepatan tinggi (ep11: 1,7×) transkripsi Whisper makin kacau: ambil **teks** dari
+`transkrip125.json`, dan **waktu** dari transkripsi `vo.wav` (potongan pendek `--min 1.5 --max 4`
+cukup untuk penanda waktu) plus `jeda.py`.
 
 Penjernih: perbaiki bagian yang pecah atau "kresek" karena clipping (`declip.py`), buang dengung rendah, kurangi desis, redam
 "s" tajam, perjelas suara, ratakan volume, dan heningkan jeda. `atempo` hanya mengubah

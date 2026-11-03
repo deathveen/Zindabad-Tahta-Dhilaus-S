@@ -109,7 +109,8 @@ Pemilik konten mengirim:
 
 ### Tahap 2: Olah VO
 - Bersihkan dengung dan desis ruangan, redam bunyi "s" yang tajam, perjelas suara, dan ratakan volume.
-- **Jernihkan dan percepat VO menjadi 1,25×** sekaligus (`scripts/prep_vo.sh`; `atempo` menjaga nada).
+- **Jernihkan dan atur tempo VO menjadi 200 kata per menit** (sejak ep11; sebelumnya 1,25× tetap).
+  Kecepatan dihitung dari jumlah kata (`scripts/tempo_wpm.sh`; `atempo` menjaga nada).
 - **Potong jeda sunyi** yang lebih dari 0,45 detik menjadi 0,28 detik (otomatis di `prep_vo.sh`).
 - **Jangan ubah nada suara Vonya.**
 - Buang kalimat yang salah baca atau diulang (pemilik konten memberi tahu bagian mana).

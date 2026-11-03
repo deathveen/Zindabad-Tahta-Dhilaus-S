@@ -75,3 +75,9 @@ render penuh.
   Dua percobaan ditolak: (1) judul rata tengah bergaris hitam tebal dan (2) latar gelap pekat.
   Yang benar: gaya asli seri (judul kuning rata kiri, bayangan lembut, tanpa garis hitam; warna
   latar sama dengan video, lapisan gelap tipis), semua isi di zona 4:5 (y 205–1075).
+- **Tempo 200 kata/menit (aturan sejak ep11).** VO ep11 di 1,25× hanya 150 kata/menit; perlu 1,7×
+  (`scripts/tempo_wpm.sh`). Di kecepatan itu Whisper makin kacau: teks diambil dari transkrip 1,25×,
+  waktu dari transkrip 1,7× berpotongan pendek.
+- **`stempel` dan `pil` menyetel `globalAlpha` sendiri**, jadi membungkusnya dengan
+  `ctx.globalAlpha = ...` tidak memudarkannya (ep11: cap "GAK ADA LIBUR" menumpuk). Sembunyikan
+  dengan batas waktu (`if (T < ...)`).
