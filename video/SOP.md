@@ -135,7 +135,8 @@ Pemilik konten mengirim:
 
 ### Tahap 6: Musik dan SFX
 - Musik instrumental lembut (piano, petikan senar) yang mengikuti suasana babak.
-- Musik **otomatis mengecil saat VO berbicara** (ducking), supaya suara Vonya yang ringan tetap jelas.
+- Musik **otomatis mengecil saat VO berbicara** (ducking), supaya suara Vonya yang ringan tetap jelas,
+  tapi tetap terdengar: ±10 dB di bawah VO saat bicara, ±8 dB di sela kata (sejak ep11).
 - SFX hanya di momen penting: benda jatuh, transisi, munculnya dalil, momen emosional. Jangan di setiap gerakan.
 - **Pengecualian: hook (detik awal) wajib padat SFX** (boom, pop, ding) + getar/kilat layar, karena VO pembuka cenderung lemas. Musik baru masuk setelah hook.
 

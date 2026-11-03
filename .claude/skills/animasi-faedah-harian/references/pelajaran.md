@@ -81,3 +81,12 @@ render penuh.
 - **`stempel` dan `pil` menyetel `globalAlpha` sendiri**, jadi membungkusnya dengan
   `ctx.globalAlpha = ...` tidak memudarkannya (ep11: cap "GAK ADA LIBUR" menumpuk). Sembunyikan
   dengan batas waktu (`if (T < ...)`).
+- **Masih kresek di ep11 walau tidak ada clipping.** Dua sumber: (1) `atempo` di 1,7× meninggalkan
+  transien kasar (±0,8/detik); `rubberband` (formant tetap, transients=mixed) menurunkannya ke
+  0,03/detik, jadi sekarang `prep_vo.sh` memakai rubberband. (2) Letupan konsonan b/p/k (mic
+  terlalu dekat) yang **diperkuat kompresor** (11 di VO asli → 51 setelah dijernihkan). Diredam
+  `declick.py` setelah penjernih; attack kompresor 8 → 3 ms. Cek: `grep -q` dalam pipa + `set -o
+  pipefail` membuat cek filter ffmpeg gagal diam-diam (SIGPIPE); pakai `grep -c ... >/dev/null`.
+- **Backsound "kurang dikit banget" (ep11).** Musik 16,5 dB di bawah VO saat bicara. Kini musik
+  ×0,4 (dulu 0,25) dan ducking 0,55 (dulu 0,75) → ±10 dB di bawah VO saat bicara, ±8 dB di sela
+  kata. Ukur dengan `STEMS=folder python3 audio.py ...`. Koreksi per episode: `MUSIK_DB=+3`, `DUCK=.5`.

@@ -87,7 +87,9 @@ if vo_path:
     env = np.abs(vo).mean(axis=1)
     k = int(.25 * SR); env = np.convolve(env, np.ones(k) / k, 'same')
     env = np.clip(env / (np.percentile(env, 95) + 1e-9), 0, 1)
-    music *= (1 - .75 * env)[:, None]         # ducking: musik mengecil saat ada suara
+    # ducking: musik mengecil saat ada suara (ep11: dulu .75, musik jadi 16,5 dB di bawah VO = "kurang
+    # banget"; kini .55 → ±10 dB di bawah VO saat bicara). DUCK=... untuk mengatur per episode.
+    music *= (1 - float(os.environ.get('DUCK', .55)) * env)[:, None]
     music[T > M.get('vo_end', DUR)] *= 1.6    # musik naik di kartu penutup
     if 'hook_end' in M:  # selama hook musik hampir senyap, lalu "masuk" setelahnya (drop)
         music *= (.15 + .85 * np.clip((T - M['hook_end']) / .25, 0, 1))[:, None]
@@ -304,8 +306,10 @@ sfx = sfx * .85 + wet * .35
 if os.environ.get('STEMS'):  # simpan trek terpisah untuk diagnosa: STEMS=folder
     for nm, a in (('music', music), ('sfx', sfx), ('vo', vo)):
         if a is not None: np.save(f"{os.environ['STEMS']}/{nm}.npy", a.astype(np.float32))
-# dengan VO: musik ±14 dB dan SFX ±8 dB di bawah suara Vonya
-mix = music * (.25 if vo is not None else .8) + sfx * (.35 if vo is not None else 1)
+# dengan VO: musik ±10 dB (saat bicara) dan SFX ±8 dB di bawah suara Vonya. Sejak ep11 musik dinaikkan
+# (.25 → .4) karena pemilik akun bilang backsound "kurang dikit banget". MUSIK_DB=+/-dB untuk koreksi.
+mg = (.4 if vo is not None else .8) * 10 ** (float(os.environ.get('MUSIK_DB', 0)) / 20)
+mix = music * mg + sfx * (.35 if vo is not None else 1)
 if vo is not None:
     mix += vo * 1.0
 fade = np.ones(N)

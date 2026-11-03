@@ -48,7 +48,7 @@ Pada kecepatan tinggi (ep11: 1,7×) transkripsi Whisper makin kacau: ambil **tek
 `transkrip125.json`, dan **waktu** dari transkripsi `vo.wav` (potongan pendek `--min 1.5 --max 4`
 cukup untuk penanda waktu) plus `jeda.py`.
 
-Penjernih: perbaiki bagian yang pecah atau "kresek" karena clipping (`declip.py`), buang dengung rendah, kurangi desis, redam
+Penjernih: perbaiki bagian yang pecah karena clipping (`declip.py`), redam letupan konsonan "kresek" (`declick.py`), ubah tempo dengan `rubberband` (bukan `atempo`, yang kasar di kecepatan tinggi), buang dengung rendah, kurangi desis, redam
 "s" tajam, perjelas suara, ratakan volume, dan heningkan jeda. `atempo` hanya mengubah
 kecepatan, nada suara Vonya tetap (SOP Bagian 4, Tahap 2). `--mentah` sebagai argumen keempat
 melewati penjernih. Terakhir, jeda sunyi lebih dari 0,45 detik dipendekkan menjadi 0,28 detik
